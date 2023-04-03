@@ -129,22 +129,10 @@ impl YaSerdeAttribute {
     element_name: TokenStream,
     take_root_prefix: bool,
   ) -> TokenStream {
-    let configured_prefix = if take_root_prefix {
-      self.prefix.clone()
-    } else {
-      prefix.clone()
-    };
-
     let namespaces_matches: TokenStream = self
       .namespaces
       .iter()
-      .map(|(prefix, namespace)| {
-        if configured_prefix == Some(prefix.to_string()) {
-          Some(quote!(#namespace => {}))
-        } else {
-          None
-        }
-      })
+      .map(|(_, namespace)| Some(quote!(#namespace => {})))
       .flatten()
       .collect();
 
