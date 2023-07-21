@@ -223,7 +223,7 @@ fn ser_attributes_complex() {
       attr_option_enum: Some(other_mod::AttrEnum::Variant2),
     },
     r#"
-    <Struct attr_option_string="some value" attr_option_enum="variant 2" />
+    <Struct attr_option_string="some value" attr_option_enum="1" />
     "#
   );
 }

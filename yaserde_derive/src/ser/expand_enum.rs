@@ -42,7 +42,8 @@ fn inner_enum_inspector(
       match variant.fields {
         Fields::Unit => Some(quote! {
           &#name::#label => {
-            let data_event = ::yaserde::xml::writer::XmlEvent::characters(#label_name);
+            let internal = format!("{}",#name::#label as u32);
+            let data_event = ::yaserde::xml::writer::XmlEvent::characters(&internal);
             writer.write(data_event).map_err(|e| e.to_string())?;
           }
         }),

@@ -52,14 +52,13 @@ pub fn parse(
           match event {
             ::yaserde::xml::reader::XmlEvent::StartElement { ref name, ref attributes, .. } => {
               match name.local_name.as_str() {
-                #match_to_enum
                 _named_element => {
                   let _root = reader.next_event();
                 }
               }
 
               if let ::yaserde::xml::reader::XmlEvent::Characters(content) = reader.peek()?.to_owned() {
-                match content.as_str() {
+                match content.parse::<u32>().map_err(|e| e.to_string())? {
                   #match_to_enum
                   _ => {}
                 }
@@ -111,7 +110,7 @@ fn parse_variant(variant: &syn::Variant, name: &Ident) -> Option<TokenStream> {
 
   match variant.fields {
     Fields::Unit => Some(quote! {
-      #xml_element_name => {
+      v if v == #variant_name as u32 => {
         enum_value = ::std::option::Option::Some(#variant_name);
       }
     }),

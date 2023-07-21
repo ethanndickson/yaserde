@@ -294,7 +294,7 @@ mod testing {
   macro_rules! deserialize_and_validate {
     ($content: expr, $model: expr, $struct: tt) => {
       log::debug!("deserialize_and_validate @ {}:{}", file!(), line!());
-      let loaded: Result<$struct, String> = yaserde::de::from_str($content);
+      let loaded: Result<$struct, String> = yaserde::de::from_str(&$content);
       assert_eq!(loaded, Ok($model));
     };
   }

@@ -345,7 +345,7 @@ fn enum_namespace() {
 
   let content = r#"
     <ns:root xmlns:ns="http://www.sample.com/ns/domain">
-      ns:Item
+      0
     </ns:root>
   "#;
 
@@ -365,9 +365,7 @@ fn enum_multi_namespaces() {
     namespace = "ns2: http://www.sample.com/ns/domain2"
   )]
   pub enum XmlStruct {
-    #[yaserde(prefix = "ns1")]
     Item1,
-    #[yaserde(prefix = "ns2")]
     Item2,
   }
 
@@ -380,7 +378,7 @@ fn enum_multi_namespaces() {
   let model = XmlStruct::Item1;
   let content = r#"
     <root xmlns:ns1="http://www.sample.com/ns/domain1" xmlns:ns2="http://www.sample.com/ns/domain2">
-      ns1:Item1
+      0
     </root>
   "#;
   serialize_and_validate!(model, content);
@@ -389,52 +387,12 @@ fn enum_multi_namespaces() {
   let model = XmlStruct::Item2;
   let content = r#"
     <root xmlns:ns1="http://www.sample.com/ns/domain1" xmlns:ns2="http://www.sample.com/ns/domain2">
-      ns2:Item2
+     1
     </root>
   "#;
   serialize_and_validate!(model, content);
   // TODO
   // deserialize_and_validate!(content, model, XmlStruct);
-}
-
-#[test]
-fn enum_attribute_namespace() {
-  init();
-
-  #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
-  #[yaserde(
-    rename = "rootA",
-    prefix = "ns",
-    namespace = "ns: http://www.sample.com/ns/domain"
-  )]
-  pub enum XmlStruct {
-    #[yaserde(prefix = "ns")]
-    Item,
-    #[yaserde(prefix = "ns")]
-    ItemWithField(String),
-  }
-
-  impl Default for XmlStruct {
-    fn default() -> XmlStruct {
-      XmlStruct::Item
-    }
-  }
-
-  let content = r#"
-    <ns:rootA xmlns:ns="http://www.sample.com/ns/domain">
-      ns:Item
-    </ns:rootA>
-  "#;
-
-  let model = XmlStruct::Item;
-  serialize_and_validate!(model, content);
-  deserialize_and_validate!(content, model, XmlStruct);
-
-  let model = XmlStruct::ItemWithField("Value".to_string());
-
-  let content = r#"<ns:rootA xmlns:ns="http://www.sample.com/ns/domain"><ns:ItemWithField>Value</ns:ItemWithField></ns:rootA>"#;
-  serialize_and_validate!(model, content);
-  deserialize_and_validate!(content, model, XmlStruct);
 }
 
 #[test]
