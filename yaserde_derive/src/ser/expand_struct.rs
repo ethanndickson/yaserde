@@ -3,15 +3,14 @@ use crate::common::{Field, YaSerdeAttribute, YaSerdeField};
 use crate::ser::{element::*, implement_serializer::implement_serializer};
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::DataStruct;
 use syn::Ident;
-use syn::{DataStruct, Generics};
 
 pub fn serialize(
   data_struct: &DataStruct,
   name: &Ident,
   root: &str,
   root_attributes: &YaSerdeAttribute,
-  generics: &Generics,
 ) -> TokenStream {
   let append_attributes: TokenStream = data_struct
     .fields
@@ -334,6 +333,5 @@ pub fn serialize(
     root_attributes,
     append_attributes,
     struct_inspector,
-    generics,
   )
 }
