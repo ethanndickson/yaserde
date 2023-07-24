@@ -429,3 +429,20 @@ fn ser_custom() {
   let content = "<Date><Year>2020</Year><Month>1</Month><DoubleDay>10</DoubleDay></Date>";
   serialize_and_validate!(model, content);
 }
+
+#[test]
+fn ser_generic() {
+  #[derive(Debug, PartialEq, YaSerialize)]
+  pub struct Container<T: YaSerialize> {
+    inner: T,
+  }
+
+  #[derive(Default, PartialEq, Debug, YaSerialize)]
+  struct Day {
+    value: i32,
+  }
+
+  let model: Container<i32> = Container { inner: 23 };
+  let content = "<Container>23</Container>";
+  serialize_and_validate!(model, content);
+}
