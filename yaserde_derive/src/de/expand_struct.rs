@@ -373,7 +373,7 @@ pub fn parse(
           );
           match event {
             ::yaserde::xml::reader::XmlEvent::StartElement{ref name, ref attributes, ..} => {
-              if depth == 0 && name.local_name == #root {
+              if depth == 0 && (name.local_name == #root || name.local_name == "Resource") {
                 // Consume root element. We must do this first. In the case it shares a name with a child element, we don't
                 // want to prematurely match the child element below.
                 let event = reader.next_event()?;
