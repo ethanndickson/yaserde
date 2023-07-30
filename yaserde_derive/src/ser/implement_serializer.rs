@@ -3,6 +3,7 @@ use crate::ser::namespace::generate_namespaces_definition;
 use proc_macro2::Ident;
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Generics;
 
 pub fn implement_serializer(
   name: &Ident,
@@ -10,12 +11,19 @@ pub fn implement_serializer(
   attributes: &YaSerdeAttribute,
   append_attributes: TokenStream,
   inner_inspector: TokenStream,
+  generics: &Generics,
 ) -> TokenStream {
   let namespaces_definition = generate_namespaces_definition(attributes);
   let flatten = attributes.flatten;
 
+  let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+  let name_str = name.to_string();
+
   quote! {
-    impl ::yaserde::YaSerialize for #name {
+    impl #impl_generics ::yaserde::YaSerialize for #name #ty_generics #where_clause {
+      fn name() -> &'static str {
+        #name_str
+      }
       #[allow(unused_variables)]
       fn serialize<W: ::std::io::Write>(
         &self,
@@ -42,6 +50,16 @@ pub fn implement_serializer(
             let mut attributes: ::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute> =
               attributes.into_owned().to_vec().iter().map(|k| k.to_owned()).collect();
             attributes.extend(child_attributes);
+            let attributes = if writer.generic() {
+              let mut tmp = vec![::yaserde::xml::attribute::OwnedAttribute {
+                name: ::yaserde::xml::name::OwnedName::local("xsi:type"),
+                value: <#name #ty_generics as ::yaserde::YaSerialize>::name().to_owned(),
+              }];
+              tmp.extend(attributes);
+              tmp
+            } else {
+              attributes
+            };
 
             let all_attributes = attributes.iter().map(|ca| ca.borrow()).collect();
 

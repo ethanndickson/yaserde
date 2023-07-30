@@ -103,6 +103,8 @@ pub trait YaDeserialize: Sized {
 
 /// A **data structure** that can be serialized into any data format supported by YaSerDe.
 pub trait YaSerialize: Sized {
+  fn name() -> &'static str;
+
   fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>;
 
   fn serialize_attributes(
@@ -175,6 +177,10 @@ pub trait Visitor<'de>: Sized {
 macro_rules! serialize_type {
   ($type:ty) => {
     impl YaSerialize for $type {
+      fn name() -> &'static str {
+        "$type"
+      }
+
       fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String> {
         let content = format!("{}", self);
         let event = XmlEvent::characters(&content);

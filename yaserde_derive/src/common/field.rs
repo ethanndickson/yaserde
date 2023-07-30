@@ -36,6 +36,10 @@ impl YaSerdeField {
     self.attributes.flatten
   }
 
+  pub fn is_generic(&self) -> bool {
+    self.attributes.generic
+  }
+
   pub fn label(&self) -> Option<Ident> {
     self.syn_field.ident.clone()
   }

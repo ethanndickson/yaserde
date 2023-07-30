@@ -3,14 +3,15 @@ use crate::common::{Field, YaSerdeAttribute, YaSerdeField};
 use crate::ser::{element::*, implement_serializer::implement_serializer};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::DataStruct;
 use syn::Ident;
+use syn::{DataStruct, Generics};
 
 pub fn serialize(
   data_struct: &DataStruct,
   name: &Ident,
   root: &str,
   root_attributes: &YaSerdeAttribute,
+  generics: &Generics,
 ) -> TokenStream {
   let append_attributes: TokenStream = data_struct
     .fields
@@ -160,6 +161,7 @@ pub fn serialize(
 
       let label_name = field.renamed_label(root_attributes);
       let conditions = condition_generator(&label, &field);
+      let generic = field.is_generic();
 
       match field.get_type() {
         Field::FieldString
@@ -218,6 +220,7 @@ pub fn serialize(
               if let ::std::option::Option::Some(ref item) = &self.#label {
                 writer.set_start_event_name(::std::option::Option::None);
                 writer.set_skip_start_end(true);
+                writer.set_generic(#generic);
                 ::yaserde::YaSerialize::serialize(item, writer)?;
               }
             }
@@ -226,6 +229,7 @@ pub fn serialize(
               if let ::std::option::Option::Some(ref item) = &self.#label {
                 writer.set_start_event_name(::std::option::Option::Some(#label_name.to_string()));
                 writer.set_skip_start_end(false);
+                writer.set_generic(#generic);
                 ::yaserde::YaSerialize::serialize(item, writer)?;
               }
             }
@@ -245,6 +249,7 @@ pub fn serialize(
           Some(quote! {
             writer.set_start_event_name(#start_event);
             writer.set_skip_start_end(#skip_start);
+            writer.set_generic(#generic);
             ::yaserde::YaSerialize::serialize(&self.#label, writer)?;
           })
         }
@@ -284,6 +289,7 @@ pub fn serialize(
               if let Some(value) = item {
                 writer.set_start_event_name(None);
                 writer.set_skip_start_end(false);
+                writer.set_generic(#generic);
                 ::yaserde::YaSerialize::serialize(value, writer)?;
               }
             }
@@ -294,6 +300,7 @@ pub fn serialize(
                 for item in &self.#label {
                     writer.set_start_event_name(::std::option::Option::None);
                   writer.set_skip_start_end(true);
+                  writer.set_generic(#generic);
                   ::yaserde::YaSerialize::serialize(item, writer)?;
                 }
               })
@@ -302,6 +309,7 @@ pub fn serialize(
                 for item in &self.#label {
                   writer.set_start_event_name(::std::option::Option::Some(#label_name.to_string()));
                   writer.set_skip_start_end(false);
+                  writer.set_generic(#generic);
                   ::yaserde::YaSerialize::serialize(item, writer)?;
                 }
               })
@@ -333,5 +341,6 @@ pub fn serialize(
     root_attributes,
     append_attributes,
     struct_inspector,
+    generics,
   )
 }

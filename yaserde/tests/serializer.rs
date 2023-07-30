@@ -419,6 +419,10 @@ fn ser_custom() {
     > {
       Ok((attributes, namespace))
     }
+
+    fn name() -> &'static str {
+      "Day"
+    }
   }
 
   let model = Date {
