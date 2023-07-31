@@ -2,16 +2,16 @@
 //!
 
 use crate::YaDeserialize;
-use std::io::Read;
+use std::io::{Cursor, Read};
 use xml::name::OwnedName;
 use xml::reader::{EventReader, ParserConfig, XmlEvent};
 
-pub fn from_str<T: YaDeserialize>(s: &str) -> Result<T, String> {
-  from_reader(s.as_bytes())
+pub fn from_str<T: YaDeserialize>(s: &str) -> Result<Box<T>, String> {
+  from_reader(Box::new(Cursor::new(s.as_bytes().to_owned())))
 }
 
-pub fn from_reader<R: Read, T: YaDeserialize>(reader: R) -> Result<T, String> {
-  <T as YaDeserialize>::deserialize(&mut Deserializer::new_from_reader(reader))
+pub fn from_reader<T: YaDeserialize>(reader: Box<dyn Read>) -> Result<Box<T>, String> {
+  <T as YaDeserialize>::deserialize(&mut Deserializer::new_from_reader(Box::new(reader)))
 }
 
 pub struct Deserializer<R: Read> {

@@ -50,10 +50,10 @@ fn parsing_ln_dom() {
 
   let content = fs::read_to_string(filename).expect("something went wrong reading the file");
 
-  let loaded: Level = from_str(&content).unwrap();
+  let loaded: Box<Level> = from_str(&content).unwrap();
   println!("{:?}", loaded);
 
-  let reference = Level {
+  let reference = Box::new(Level {
     last_modified: 1414141442,
     named: "dagger".to_string(),
     timeline: Timeline {
@@ -75,7 +75,7 @@ fn parsing_ln_dom() {
         },
       },
     },
-  };
+  });
 
   assert_eq!(loaded, reference);
 }

@@ -420,7 +420,7 @@ fn struct_bad_namespace() {
     </ns:book>
   "#;
 
-  let loaded: Result<Book, String> = yaserde::de::from_str(content);
+  let loaded: Result<Box<Book>, String> = yaserde::de::from_str(content);
   assert_eq!(
     loaded,
     Err("bad namespace for book, found http://www.sample.com/ns/domain2".to_string())

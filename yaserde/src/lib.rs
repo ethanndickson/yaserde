@@ -90,22 +90,36 @@ pub extern crate xml;
 #[macro_use]
 extern crate yaserde_derive;
 
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
 use xml::writer::XmlEvent;
 
 pub mod de;
 pub mod ser;
 
+pub trait YaserdeWrite: Write {
+  fn to_bytes(&self) -> &[u8];
+}
+
+impl YaserdeWrite for Cursor<Vec<u8>> {
+  fn to_bytes(&self) -> &[u8] {
+    self.get_ref()
+  }
+}
+
 /// A **data structure** that can be deserialized from any data format supported by YaSerDe.
-pub trait YaDeserialize: Sized {
-  fn deserialize<R: Read>(reader: &mut de::Deserializer<R>) -> Result<Self, String>;
+pub trait YaDeserialize {
+  fn deserialize(reader: &mut de::Deserializer<Box<dyn Read>>) -> Result<Box<Self>, String>
+  where
+    Self: Sized;
 }
 
 /// A **data structure** that can be serialized into any data format supported by YaSerDe.
-pub trait YaSerialize: Sized {
-  fn name() -> &'static str;
+pub trait YaSerialize {
+  fn name() -> &'static str
+  where
+    Self: Sized;
 
-  fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>;
+  fn serialize(&self, writer: &mut ser::Serializer<Box<dyn YaserdeWrite>>) -> Result<(), String>;
 
   fn serialize_attributes(
     &self,
@@ -181,7 +195,10 @@ macro_rules! serialize_type {
         "$type"
       }
 
-      fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String> {
+      fn serialize(
+        &self,
+        writer: &mut ser::Serializer<Box<dyn YaserdeWrite>>,
+      ) -> Result<(), String> {
         let content = format!("{}", self);
         let event = XmlEvent::characters(&content);
         let _ret = writer.write(event);
@@ -300,8 +317,8 @@ mod testing {
   macro_rules! deserialize_and_validate {
     ($content: expr, $model: expr, $struct: tt) => {
       log::debug!("deserialize_and_validate @ {}:{}", file!(), line!());
-      let loaded: Result<$struct, String> = yaserde::de::from_str(&$content);
-      assert_eq!(loaded, Ok($model));
+      let loaded: Result<Box<$struct>, String> = yaserde::de::from_str(&$content);
+      assert_eq!(loaded, Ok(Box::new($model)));
     };
   }
 

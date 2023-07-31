@@ -28,9 +28,9 @@ pub fn parse(
   quote! {
     impl ::yaserde::YaDeserialize for #name {
       #[allow(unused_variables)]
-      fn deserialize<R: ::std::io::Read>(
-        reader: &mut ::yaserde::de::Deserializer<R>,
-      ) -> ::std::result::Result<Self, ::std::string::String> {
+      fn deserialize(
+        reader: &mut ::yaserde::de::Deserializer<Box<dyn ::std::io::Read>>,
+      ) -> ::std::result::Result<::std::boxed::Box<Self>, ::std::string::String> {
         let (named_element, enum_namespace) =
           if let ::yaserde::xml::reader::XmlEvent::StartElement{ name, .. } = reader.peek()?.to_owned() {
             (name.local_name.to_owned(), name.namespace.clone())
@@ -90,9 +90,9 @@ pub fn parse(
 
         ::yaserde::log::debug!("Enum {} @ {}: success", stringify!(#name), start_depth);
         match enum_value {
-          ::std::option::Option::Some(value) => ::std::result::Result::Ok(value),
+          ::std::option::Option::Some(value) => ::std::result::Result::Ok(::std::boxed::Box::new(value)),
           ::std::option::Option::None => {
-            ::std::result::Result::Ok(<#name as ::std::default::Default>::default())
+            ::std::result::Result::Ok(::std::boxed::Box::new(<#name as ::std::default::Default>::default()))
           },
         }
       }
@@ -255,6 +255,7 @@ fn build_unnamed_visitor_calls(
         Some(quote! {
           match <#struct_name as ::yaserde::YaDeserialize>::deserialize(reader) {
             Ok(value) => {
+              let value = *value;
               #action;
               let _root = reader.next_event();
             },

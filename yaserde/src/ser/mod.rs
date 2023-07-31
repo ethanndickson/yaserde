@@ -1,51 +1,57 @@
 //! Generic data structure serialization framework.
 //!
 
-use crate::YaSerialize;
+use crate::{YaSerialize, YaserdeWrite};
 use std::io::{Cursor, Write};
 use std::str;
 use xml::writer::XmlEvent;
 use xml::{EmitterConfig, EventWriter};
 
 /// Serialize XML into a plain String with no formatting (EmitterConfig).
-pub fn to_string<T: YaSerialize>(model: &T) -> Result<String, String> {
+pub fn to_string(model: Box<dyn YaSerialize>) -> Result<String, String> {
   let buf = Cursor::new(Vec::new());
-  let cursor = serialize_with_writer(model, buf, &Config::default())?;
-  let data = str::from_utf8(cursor.get_ref()).expect("Found invalid UTF-8");
+  let cursor = serialize_with_writer(model, Box::new(buf), &Config::default())?;
+  let data = str::from_utf8(cursor.to_bytes()).expect("Found invalid UTF-8");
   Ok(data.into())
 }
-
 /// Serialize XML into a plain String with control on formatting (via EmitterConfig parameters)
-pub fn to_string_with_config<T: YaSerialize>(model: &T, config: &Config) -> Result<String, String> {
+pub fn to_string_with_config(
+  model: Box<dyn YaSerialize>,
+  config: &Config,
+) -> Result<String, String> {
   let buf = Cursor::new(Vec::new());
-  let cursor = serialize_with_writer(model, buf, config)?;
-  let data = str::from_utf8(cursor.get_ref()).expect("Found invalid UTF-8");
+  let cursor = serialize_with_writer(model, Box::new(buf), config)?;
+  let data = str::from_utf8(cursor.to_bytes()).expect("Found invalid UTF-8");
   Ok(data.into())
 }
 
-pub fn serialize_with_writer<W: Write, T: YaSerialize>(
-  model: &T,
-  writer: W,
+pub fn serialize_with_writer(
+  model: Box<dyn YaSerialize>,
+  writer: Box<dyn YaserdeWrite>,
   config: &Config,
-) -> Result<W, String> {
+) -> Result<Box<dyn YaserdeWrite>, String> {
   let mut serializer = Serializer::new_from_writer(writer, config);
-  match YaSerialize::serialize(model, &mut serializer) {
+  match model.serialize(&mut serializer) {
     Ok(()) => Ok(serializer.into_inner()),
     Err(msg) => Err(msg),
   }
+  // match YaSerialize::serialize(model, &mut serializer) {
+  //   Ok(()) => Ok(serializer.into_inner()),
+  //   Err(msg) => Err(msg),
+  // }
 }
 
 pub fn to_string_content<T: YaSerialize>(model: &T) -> Result<String, String> {
   let buf = Cursor::new(Vec::new());
-  let cursor = serialize_with_writer_content(model, buf)?;
-  let data = str::from_utf8(cursor.get_ref()).expect("Found invalid UTF-8");
+  let cursor = serialize_with_writer_content(model, Box::new(buf))?;
+  let data = str::from_utf8(cursor.to_bytes()).expect("Found invalid UTF-8");
   Ok(data.into())
 }
 
-pub fn serialize_with_writer_content<W: Write, T: YaSerialize>(
+pub fn serialize_with_writer_content<T: YaSerialize>(
   model: &T,
-  writer: W,
-) -> Result<W, String> {
+  writer: Box<dyn YaserdeWrite>,
+) -> Result<Box<dyn YaserdeWrite>, String> {
   let mut serializer = Serializer::new_for_inner(writer);
   serializer.set_skip_start_end(true);
   match YaSerialize::serialize(model, &mut serializer) {

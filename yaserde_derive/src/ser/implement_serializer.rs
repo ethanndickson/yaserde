@@ -25,9 +25,9 @@ pub fn implement_serializer(
         #name_str
       }
       #[allow(unused_variables)]
-      fn serialize<W: ::std::io::Write>(
+      fn serialize(
         &self,
-        writer: &mut ::yaserde::ser::Serializer<W>,
+        writer: &mut ::yaserde::ser::Serializer<Box<dyn ::yaserde::YaserdeWrite>>,
       ) -> ::std::result::Result<(), ::std::string::String> {
         let skip = writer.skip_start_end();
 

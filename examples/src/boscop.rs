@@ -108,7 +108,7 @@ fn parsing_bbigras_namespace() {
   let filename = "tests/data/boscop.xml";
   let content = fs::read_to_string(filename).expect("something went wrong reading the file");
 
-  let loaded: Layout = from_str(&content).unwrap();
+  let loaded: Box<Layout> = from_str(&content).unwrap();
 
   assert_eq!(loaded.tabpage.len(), 4);
   assert_eq!(loaded.tabpage[0].control.len(), 13);

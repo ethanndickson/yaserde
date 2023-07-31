@@ -80,10 +80,10 @@ fn parsing_bbigras_namespace() {
 
   let content = fs::read_to_string(filename).expect("something went wrong reading the file");
 
-  let loaded: Workbook = from_str(&content).unwrap();
+  let loaded: Box<Workbook> = from_str(&content).unwrap();
   println!("{:?}", loaded);
 
-  let reference = Workbook {
+  let reference = Box::new(Workbook {
     worksheet: Worksheet {
       ws_name: "some_name".to_string(),
       table: Table {
@@ -100,7 +100,7 @@ fn parsing_bbigras_namespace() {
         }],
       },
     },
-  };
+  });
 
   assert_eq!(loaded, reference);
 }

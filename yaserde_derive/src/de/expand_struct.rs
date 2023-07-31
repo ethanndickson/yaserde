@@ -103,7 +103,7 @@ pub fn parse(
               v: &str,
             ) -> ::std::result::Result<Self::Value, ::std::string::String> {
               let content = "<".to_string() + #struct_id + ">" + v + "</" + #struct_id + ">";
-              ::yaserde::de::from_str(&content)
+              ::yaserde::de::from_str(&content).map(|boxed| *boxed)
             }
           }
         })
@@ -177,6 +177,7 @@ pub fn parse(
             if let Ok(::yaserde::xml::reader::XmlEvent::StartElement { .. }) = reader.peek() {
               // If substruct's start element found then deserialize substruct
               let value = <#struct_name as ::yaserde::YaDeserialize>::deserialize(reader)?;
+              let value = *value;
               #value_label #action;
             }
           }
@@ -223,11 +224,11 @@ pub fn parse(
 
       match field.get_type() {
         Field::FieldStruct { .. } => Some(quote! {
-          #value_label = ::yaserde::de::from_str(&unused_xml_elements)?;
+          #value_label = *::yaserde::de::from_str(&unused_xml_elements)?;
         }),
         Field::FieldOption { data_type } => match *data_type {
           Field::FieldStruct { .. } => Some(quote! {
-            #value_label = ::yaserde::de::from_str(&unused_xml_elements).ok();
+            #value_label = *::yaserde::de::from_str(&unused_xml_elements).ok();
           }),
           field_type => unimplemented!(r#""flatten" is not implemented for {:?}"#, field_type),
         },
@@ -361,9 +362,9 @@ pub fn parse(
   quote! {
     impl #impl_generics ::yaserde::YaDeserialize for #name #ty_generics #where_clause {
       #[allow(unused_variables)]
-      fn deserialize<R: ::std::io::Read>(
-        reader: &mut ::yaserde::de::Deserializer<R>,
-      ) -> ::std::result::Result<Self, ::std::string::String> {
+      fn deserialize(
+        reader: &mut ::yaserde::de::Deserializer<Box<dyn ::std::io::Read>>,
+      ) -> ::std::result::Result<::std::boxed::Box<Self>, ::std::string::String> {
         let (named_element, struct_namespace) =
           if let ::yaserde::xml::reader::XmlEvent::StartElement { name, .. } = reader.peek()?.to_owned() {
             (name.local_name.to_owned(), name.namespace.clone())
@@ -445,7 +446,7 @@ pub fn parse(
         #visit_unused
 
         ::yaserde::log::debug!("Struct {} @ {}: success", stringify!(#name), start_depth);
-        ::std::result::Result::Ok(#name{#struct_builder})
+        ::std::result::Result::Ok(::std::boxed::Box::new(#name{#struct_builder}))
       }
     }
   }

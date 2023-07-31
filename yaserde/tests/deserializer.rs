@@ -15,8 +15,8 @@ fn init() {
 macro_rules! convert_and_validate {
   ($content: expr, $struct: tt, $model: expr) => {
     debug!("convert_and_validate @ {}:{}", file!(), line!());
-    let loaded: Result<$struct, String> = from_str($content);
-    assert_eq!(loaded, Ok($model));
+    let loaded: Result<Box<$struct>, String> = from_str($content);
+    assert_eq!(loaded, Ok(Box::new($model)));
   };
 }
 
@@ -252,7 +252,9 @@ fn de_attributes_custom_deserializer() {
     }
 
     impl YaDeserialize for Attributes {
-      fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String> {
+      fn deserialize(
+        reader: &mut yaserde::de::Deserializer<Box<dyn Read>>,
+      ) -> Result<Box<Self>, String> {
         loop {
           match reader.next_event()? {
             XmlEvent::StartElement { .. } => {}
@@ -261,7 +263,7 @@ fn de_attributes_custom_deserializer() {
                 .split(' ')
                 .map(|item| item.to_owned())
                 .collect();
-              return Ok(Attributes { items });
+              return Ok(Box::new(Attributes { items }));
             }
             _ => {
               break;
@@ -600,7 +602,9 @@ fn de_custom() {
   }
 
   impl YaDeserialize for Day {
-    fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String> {
+    fn deserialize(
+      reader: &mut yaserde::de::Deserializer<Box<dyn Read>>,
+    ) -> Result<Box<Self>, String> {
       use std::str::FromStr;
 
       if let xml::reader::XmlEvent::StartElement { name, .. } = reader.peek()?.to_owned() {
@@ -617,9 +621,9 @@ fn de_custom() {
       }
 
       if let xml::reader::XmlEvent::Characters(text) = reader.peek()?.to_owned() {
-        Ok(Day {
+        Ok(Box::new(Day {
           value: 2 * i32::from_str(&text).unwrap(),
-        })
+        }))
       } else {
         Err("Characters missing".to_string())
       }
@@ -627,15 +631,15 @@ fn de_custom() {
   }
 
   let content = "<?xml version=\"1.0\" encoding=\"utf-8\"?><Date><Year>2020</Year><Month>01</Month><Day>11</Day></Date>";
-  let model: Date = from_str(content).unwrap();
+  let model: Box<Date> = from_str(content).unwrap();
 
   assert_eq!(
     model,
-    Date {
+    Box::new(Date {
       year: 2020,
       month: 1,
       day: Day { value: 11 * 2 }
-    }
+    })
   );
 }
 
