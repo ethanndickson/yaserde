@@ -1,6 +1,6 @@
 // related to issue https://github.com/media-io/yaserde/issues/11
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 #[yaserde(root = "DOMSymbolItem")]
 struct Level {
   #[yaserde(attribute)]
@@ -10,13 +10,13 @@ struct Level {
   timeline: Timeline,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 struct Timeline {
   #[yaserde(rename = "DOMTimeline")]
   timeline: DOMTimeline,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 struct DOMTimeline {
   #[yaserde(attribute, rename = "name")]
   named: String,
@@ -27,13 +27,13 @@ struct DOMTimeline {
   layers: Layers,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 struct Layers {
   #[yaserde(rename = "DOMLayer")]
   dom_layer: Vec<DOMLayer>,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 struct DOMLayer {
   #[yaserde(attribute, rename = "name")]
   named: String,

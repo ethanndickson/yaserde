@@ -1,6 +1,6 @@
 // related to issue https://github.com/media-io/yaserde/issues/3
 
-#[derive(Default, Debug, Clone, PartialEq, YaDeserialize)]
+#[derive(Default, Debug, Clone, PartialEq, YaDeserialize, YaSerialize)]
 #[yaserde(root = "layout")]
 pub struct Layout {
   #[yaserde(attribute)]
@@ -16,7 +16,7 @@ pub struct Layout {
   pub tabpage: Vec<Tabpage>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, YaDeserialize)]
+#[derive(Default, Debug, Clone, PartialEq, YaDeserialize, YaSerialize)]
 pub struct Tabpage {
   #[yaserde(attribute, rename = "name")]
   pub named: String,
@@ -47,7 +47,7 @@ pub struct Tabpage {
   pub control: Vec<Control>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, YaDeserialize)]
+#[derive(Default, Debug, Clone, PartialEq, YaDeserialize, YaSerialize)]
 pub struct Control {
   #[yaserde(attribute, rename = "name")]
   pub named: String,
@@ -82,7 +82,7 @@ pub struct Control {
   pub norollover: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, YaDeserialize)]
+#[derive(Default, Debug, Clone, PartialEq, YaDeserialize, YaSerialize)]
 pub struct Midi {
   #[yaserde(attribute)]
   pub var: String,

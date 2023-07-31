@@ -90,6 +90,8 @@ pub extern crate xml;
 #[macro_use]
 extern crate yaserde_derive;
 
+use de::Deserializer;
+use downcast_rs::{impl_downcast, Downcast};
 use std::io::{Cursor, Read, Write};
 use xml::writer::XmlEvent;
 
@@ -107,11 +109,20 @@ impl YaserdeWrite for Cursor<Vec<u8>> {
 }
 
 /// A **data structure** that can be deserialized from any data format supported by YaSerDe.
-pub trait YaDeserialize {
+pub trait YaDeserialize: YaSerialize + Downcast {
   fn deserialize(reader: &mut de::Deserializer<Box<dyn Read>>) -> Result<Box<Self>, String>
   where
     Self: Sized;
+  fn from_str(s: &str) -> Result<Box<Self>, String>
+  where
+    Self: Sized,
+  {
+    YaDeserialize::deserialize(&mut Deserializer::new_from_reader(Box::new(Box::new(
+      Cursor::new(s.as_bytes().to_owned()),
+    ))))
+  }
 }
+impl_downcast!(YaDeserialize);
 
 /// A **data structure** that can be serialized into any data format supported by YaSerDe.
 pub trait YaSerialize {

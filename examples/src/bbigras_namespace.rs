@@ -1,6 +1,6 @@
 // related to issue https://github.com/media-io/yaserde/issues/15
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 #[yaserde(
   prefix = "ss",
   namespace = "x: urn:schemas-microsoft-com:office:excel",
@@ -13,7 +13,7 @@ struct Workbook {
   worksheet: Worksheet,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 #[yaserde(
   prefix = "ss",
   namespace = "x: urn:schemas-microsoft-com:office:excel",
@@ -28,7 +28,7 @@ struct Worksheet {
   ws_name: String,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 #[yaserde(
   prefix = "ss",
   namespace = "x: urn:schemas-microsoft-com:office:excel",
@@ -56,7 +56,7 @@ struct Table {
   rows: Vec<Row>,
 }
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
+#[derive(YaDeserialize, YaSerialize, Default, Debug, PartialEq)]
 #[yaserde(
   prefix = "ss",
   namespace = "x: urn:schemas-microsoft-com:office:excel",

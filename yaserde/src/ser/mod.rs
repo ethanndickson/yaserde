@@ -1,14 +1,14 @@
 //! Generic data structure serialization framework.
 //!
 
-use crate::{YaSerialize, YaserdeWrite};
+use crate::{YaDeserialize, YaSerialize, YaserdeWrite};
 use std::io::{Cursor, Write};
 use std::str;
 use xml::writer::XmlEvent;
 use xml::{EmitterConfig, EventWriter};
 
 /// Serialize XML into a plain String with no formatting (EmitterConfig).
-pub fn to_string(model: Box<dyn YaSerialize>) -> Result<String, String> {
+pub fn to_string(model: Box<dyn YaDeserialize>) -> Result<String, String> {
   let buf = Cursor::new(Vec::new());
   let cursor = serialize_with_writer(model, Box::new(buf), &Config::default())?;
   let data = str::from_utf8(cursor.to_bytes()).expect("Found invalid UTF-8");
@@ -16,7 +16,7 @@ pub fn to_string(model: Box<dyn YaSerialize>) -> Result<String, String> {
 }
 /// Serialize XML into a plain String with control on formatting (via EmitterConfig parameters)
 pub fn to_string_with_config(
-  model: Box<dyn YaSerialize>,
+  model: Box<dyn YaDeserialize>,
   config: &Config,
 ) -> Result<String, String> {
   let buf = Cursor::new(Vec::new());
@@ -26,7 +26,7 @@ pub fn to_string_with_config(
 }
 
 pub fn serialize_with_writer(
-  model: Box<dyn YaSerialize>,
+  model: Box<dyn YaDeserialize>,
   writer: Box<dyn YaserdeWrite>,
   config: &Config,
 ) -> Result<Box<dyn YaserdeWrite>, String> {
