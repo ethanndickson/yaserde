@@ -17,7 +17,7 @@ pub fn implement_serializer(
   let flatten = attributes.flatten;
 
   let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-  let name_str = name.to_string();
+  let name_str = attributes.xml_element_name(name);
 
   quote! {
     impl #impl_generics ::yaserde::YaSerialize for #name #ty_generics #where_clause {
