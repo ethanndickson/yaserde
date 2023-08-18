@@ -397,7 +397,10 @@ fn ser_custom() {
   }
 
   impl YaSerialize for Day {
-    fn serialize<W: Write>(&self, writer: &mut yaserde::ser::Serializer<W>) -> Result<(), String> {
+    fn serialize<W: Write>(&self, writer: &mut yaserde::ser::Serializer<W>) -> Result<(), String>
+    where
+      Self: Sized,
+    {
       let _ret = writer.write(xml::writer::XmlEvent::start_element("DoubleDay"));
       let _ret = writer.write(xml::writer::XmlEvent::characters(
         &(self.value * 2).to_string(),
@@ -416,7 +419,10 @@ fn ser_custom() {
         xml::namespace::Namespace,
       ),
       String,
-    > {
+    >
+    where
+      Self: Sized,
+    {
       Ok((attributes, namespace))
     }
 

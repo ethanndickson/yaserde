@@ -363,7 +363,7 @@ pub fn parse(
       #[allow(unused_variables)]
       fn deserialize<R: ::std::io::Read>(
         reader: &mut ::yaserde::de::Deserializer<R>,
-      ) -> ::std::result::Result<Self, ::std::string::String> {
+      ) -> ::std::result::Result<Self, ::std::string::String> where Self: Sized {
         let (named_element, struct_namespace) =
           if let ::yaserde::xml::reader::XmlEvent::StartElement { name, .. } = reader.peek()?.to_owned() {
             (name.local_name.to_owned(), name.namespace.clone())

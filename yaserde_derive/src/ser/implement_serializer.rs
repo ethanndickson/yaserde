@@ -28,7 +28,7 @@ pub fn implement_serializer(
       fn serialize<W: ::std::io::Write>(
         &self,
         writer: &mut ::yaserde::ser::Serializer<W>,
-      ) -> ::std::result::Result<(), ::std::string::String> {
+      ) -> ::std::result::Result<(), ::std::string::String> where Self: Sized {
         let skip = writer.skip_start_end();
 
         if !#flatten && !skip {
@@ -93,7 +93,7 @@ pub fn implement_serializer(
       ) -> ::std::result::Result<
         (::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute>, ::yaserde::xml::namespace::Namespace),
         ::std::string::String
-      > {
+      > where Self: Sized {
         let mut child_attributes = ::std::vec::Vec::<::yaserde::xml::attribute::OwnedAttribute>::new();
         let mut child_attributes_namespace = ::yaserde::xml::namespace::Namespace::empty();
 

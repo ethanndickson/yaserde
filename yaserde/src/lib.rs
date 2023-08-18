@@ -97,15 +97,19 @@ pub mod de;
 pub mod ser;
 
 /// A **data structure** that can be deserialized from any data format supported by YaSerDe.
-pub trait YaDeserialize: Sized {
-  fn deserialize<R: Read>(reader: &mut de::Deserializer<R>) -> Result<Self, String>;
+pub trait YaDeserialize {
+  fn deserialize<R: Read>(reader: &mut de::Deserializer<R>) -> Result<Self, String>
+  where
+    Self: Sized;
 }
 
 /// A **data structure** that can be serialized into any data format supported by YaSerDe.
-pub trait YaSerialize: Sized {
+pub trait YaSerialize {
   fn name() -> &'static str;
 
-  fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>;
+  fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>
+  where
+    Self: Sized;
 
   fn serialize_attributes(
     &self,
@@ -117,7 +121,9 @@ pub trait YaSerialize: Sized {
       xml::namespace::Namespace,
     ),
     String,
-  >;
+  >
+  where
+    Self: Sized;
 }
 
 /// A **visitor** that can be implemented to retrieve information from source file.
@@ -181,7 +187,10 @@ macro_rules! serialize_type {
         "$type"
       }
 
-      fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String> {
+      fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>
+      where
+        Self: Sized,
+      {
         let content = format!("{}", self);
         let event = XmlEvent::characters(&content);
         let _ret = writer.write(event);
@@ -198,7 +207,10 @@ macro_rules! serialize_type {
           xml::namespace::Namespace,
         ),
         String,
-      > {
+      >
+      where
+        Self: Sized,
+      {
         Ok((attributes, namespace))
       }
     }

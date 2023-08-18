@@ -252,7 +252,10 @@ fn de_attributes_custom_deserializer() {
     }
 
     impl YaDeserialize for Attributes {
-      fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String> {
+      fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String>
+      where
+        Self: Sized,
+      {
         loop {
           match reader.next_event()? {
             XmlEvent::StartElement { .. } => {}
@@ -600,7 +603,10 @@ fn de_custom() {
   }
 
   impl YaDeserialize for Day {
-    fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String> {
+    fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String>
+    where
+      Self: Sized,
+    {
       use std::str::FromStr;
 
       if let xml::reader::XmlEvent::StartElement { name, .. } = reader.peek()?.to_owned() {
