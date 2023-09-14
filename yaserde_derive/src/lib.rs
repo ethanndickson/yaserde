@@ -8,10 +8,10 @@ mod de;
 mod primitives;
 mod ser;
 
-use primitives::primitive_derive;
+use primitives::{hexbinary_serde, primitive_serde, primitive_yaserde};
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(YaDeserialize, attributes(yaserde))]
 pub fn derive_deserialize(input: TokenStream) -> TokenStream {
@@ -31,28 +31,26 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
   }
 }
 
-#[proc_macro_derive(HexBinarySerde)]
+#[proc_macro_derive(HexBinaryYaSerde)]
 pub fn derive_hexbinary(input: TokenStream) -> TokenStream {
-  let DeriveInput { ident, .. } = parse_macro_input!(input);
+  let serde: TokenStream2 = hexbinary_serde(input.clone()).into();
+  let yaserde: TokenStream2 = primitive_yaserde(input).into();
+
   quote! {
-    impl std::fmt::Display for #ident {
-      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "0x{:X}", self.0)
-      }
-    }
-
-    impl ::std::str::FromStr for #ident {
-      type Err = ::std::string::String;
-
-      fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
-        bitflags::parser::from_str(s).map_err(|e| e.to_string())
-      }
-    }
+    #serde
+    #yaserde
   }
   .into()
 }
 
-#[proc_macro_derive(YaSerdePrimitive)]
+#[proc_macro_derive(PrimitiveYaSerde)]
 pub fn derive_primitive(input: TokenStream) -> TokenStream {
-  primitive_derive(input)
+  let serde: TokenStream2 = primitive_serde(input.clone()).into();
+  let yaserde: TokenStream2 = primitive_yaserde(input).into();
+
+  quote! {
+    #serde
+    #yaserde
+  }
+  .into()
 }

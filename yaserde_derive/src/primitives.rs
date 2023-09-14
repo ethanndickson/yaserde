@@ -5,7 +5,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
-pub fn primitive_derive(input: TokenStream) -> TokenStream {
+pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
   let ast = parse_macro_input!(input as DeriveInput);
 
   let struct_name = &ast.ident;
@@ -55,4 +55,46 @@ pub fn primitive_derive(input: TokenStream) -> TokenStream {
   };
 
   serde.into()
+}
+
+pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
+  let first = input.clone();
+  let DeriveInput { ident, .. } = parse_macro_input!(first);
+  quote! {
+    impl std::fmt::Display for #ident {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "0x{:X}", self.0)
+      }
+    }
+
+    impl ::std::str::FromStr for #ident {
+      type Err = ::std::string::String;
+
+      fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
+        bitflags::parser::from_str(s).map_err(|e| e.to_string())
+      }
+    }
+  }
+  .into()
+}
+
+pub fn primitive_serde(input: TokenStream) -> TokenStream {
+  let first = input.clone();
+  let DeriveInput { ident, .. } = parse_macro_input!(first);
+  quote! {
+    impl std::fmt::Display for #ident {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+      }
+    }
+
+    impl ::std::str::FromStr for #ident {
+      type Err = ::std::string::String;
+
+      fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
+        bitflags::parser::from_str(s).map_err(|e| e.to_string())
+      }
+    }
+  }
+  .into()
 }
