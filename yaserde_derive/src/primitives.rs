@@ -92,7 +92,7 @@ pub fn primitive_serde(input: TokenStream) -> TokenStream {
       type Err = ::std::string::String;
 
       fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
-        bitflags::parser::from_str(s).map_err(|e| e.to_string())
+        s.parse::<Self>().map_err(|e| e.to_string())
       }
     }
   }
