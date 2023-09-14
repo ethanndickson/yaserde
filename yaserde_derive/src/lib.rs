@@ -5,8 +5,10 @@ extern crate proc_macro;
 
 mod common;
 mod de;
+mod primitives;
 mod ser;
 
+use primitives::primitive_derive;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
@@ -48,4 +50,9 @@ pub fn derive_hexbinary(input: TokenStream) -> TokenStream {
     }
   }
   .into()
+}
+
+#[proc_macro_derive(YaSerdePrimitive)]
+pub fn derive_primitive(input: TokenStream) -> TokenStream {
+  primitive_derive(input)
 }
