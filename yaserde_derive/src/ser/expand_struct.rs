@@ -7,24 +7,24 @@ use syn::Ident;
 use syn::{DataStruct, Generics};
 
 pub fn serialize(
-  data_struct: &DataStruct,
-  name: &Ident,
-  root: &str,
-  root_attributes: &YaSerdeAttribute,
-  generics: &Generics,
+    data_struct: &DataStruct,
+    name: &Ident,
+    root: &str,
+    root_attributes: &YaSerdeAttribute,
+    generics: &Generics,
 ) -> TokenStream {
-  let append_attributes: TokenStream = data_struct
-    .fields
-    .iter()
-    .map(|field| YaSerdeField::new(field.clone()))
-    .filter(|field| field.is_attribute() || field.is_flatten())
-    .map(|field| {
-      let label = field.label();
+    let append_attributes: TokenStream = data_struct
+        .fields
+        .iter()
+        .map(|field| YaSerdeField::new(field.clone()))
+        .filter(|field| field.is_attribute() || field.is_flatten())
+        .map(|field| {
+            let label = field.label();
 
-      if field.is_attribute() {
-        let label_name = field.renamed_label(root_attributes);
+            if field.is_attribute() {
+                let label_name = field.renamed_label(root_attributes);
 
-        match field.get_type() {
+                match field.get_type() {
           Field::FieldString
           | Field::FieldBool
           | Field::FieldI8
@@ -120,25 +120,25 @@ pub fn serialize(
             quote!()
           }
         }
-      } else {
-        match field.get_type() {
-          Field::FieldStruct { .. } => {
-            quote!(
-              let (attributes, namespace) = self.#label.serialize_attributes(
-                ::std::vec![],
-                ::yaserde::xml::namespace::Namespace::empty(),
-              )?;
-              child_attributes_namespace.extend(&namespace);
-              child_attributes.extend(attributes);
-            )
-          }
-          _ => quote!(),
-        }
-      }
-    })
-    .collect();
+            } else {
+                match field.get_type() {
+                    Field::FieldStruct { .. } => {
+                        quote!(
+                          let (attributes, namespace) = self.#label.serialize_attributes(
+                            ::std::vec![],
+                            ::yaserde::xml::namespace::Namespace::empty(),
+                          )?;
+                          child_attributes_namespace.extend(&namespace);
+                          child_attributes.extend(attributes);
+                        )
+                    }
+                    _ => quote!(),
+                }
+            }
+        })
+        .collect();
 
-  let struct_inspector: TokenStream = data_struct
+    let struct_inspector: TokenStream = data_struct
     .fields
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
@@ -335,12 +335,12 @@ pub fn serialize(
     .flatten()
     .collect();
 
-  implement_serializer(
-    name,
-    root,
-    root_attributes,
-    append_attributes,
-    struct_inspector,
-    generics,
-  )
+    implement_serializer(
+        name,
+        root,
+        root_attributes,
+        append_attributes,
+        struct_inspector,
+        generics,
+    )
 }

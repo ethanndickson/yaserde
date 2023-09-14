@@ -4,146 +4,146 @@ use quote::quote;
 use syn::{DataEnum, Fields, Ident};
 
 pub fn parse(
-  data_enum: &DataEnum,
-  name: &Ident,
-  root: &str,
-  root_attributes: &YaSerdeAttribute,
+    data_enum: &DataEnum,
+    name: &Ident,
+    root: &str,
+    root_attributes: &YaSerdeAttribute,
 ) -> TokenStream {
-  let namespaces_matching = root_attributes.get_namespace_matching(
-    &None,
-    quote!(enum_namespace),
-    quote!(named_element),
-    true,
-  );
+    let namespaces_matching = root_attributes.get_namespace_matching(
+        &None,
+        quote!(enum_namespace),
+        quote!(named_element),
+        true,
+    );
 
-  let match_to_enum: TokenStream = data_enum
-    .variants
-    .iter()
-    .map(|variant| parse_variant(variant, name))
-    .flatten()
-    .collect();
+    let match_to_enum: TokenStream = data_enum
+        .variants
+        .iter()
+        .map(|variant| parse_variant(variant, name))
+        .flatten()
+        .collect();
 
-  let flatten = root_attributes.flatten;
+    let flatten = root_attributes.flatten;
 
-  quote! {
-    impl ::yaserde::YaDeserialize for #name {
-      #[allow(unused_variables)]
-      fn deserialize<R: ::std::io::Read>(
-        reader: &mut ::yaserde::de::Deserializer<R>,
-      ) -> ::std::result::Result<Self, ::std::string::String> where Self: Sized {
-        let (named_element, enum_namespace) =
-          if let ::yaserde::xml::reader::XmlEvent::StartElement{ name, .. } = reader.peek()?.to_owned() {
-            (name.local_name.to_owned(), name.namespace.clone())
-          } else {
-            (::std::string::String::from(#root), ::std::option::Option::None)
-          };
+    quote! {
+      impl ::yaserde::YaDeserialize for #name {
+        #[allow(unused_variables)]
+        fn deserialize<R: ::std::io::Read>(
+          reader: &mut ::yaserde::de::Deserializer<R>,
+        ) -> ::std::result::Result<Self, ::std::string::String> where Self: Sized {
+          let (named_element, enum_namespace) =
+            if let ::yaserde::xml::reader::XmlEvent::StartElement{ name, .. } = reader.peek()?.to_owned() {
+              (name.local_name.to_owned(), name.namespace.clone())
+            } else {
+              (::std::string::String::from(#root), ::std::option::Option::None)
+            };
 
-        let start_depth = reader.depth();
-        ::yaserde::log::debug!("Enum {} @ {}: start to parse {:?}", stringify!(#name), start_depth, named_element);
+          let start_depth = reader.depth();
+          ::yaserde::log::debug!("Enum {} @ {}: start to parse {:?}", stringify!(#name), start_depth, named_element);
 
-        #namespaces_matching
+          #namespaces_matching
 
-        #[allow(unused_assignments, unused_mut)]
-        let mut enum_value = ::std::option::Option::None;
+          #[allow(unused_assignments, unused_mut)]
+          let mut enum_value = ::std::option::Option::None;
 
-        loop {
-          let event = reader.peek()?.to_owned();
-          ::yaserde::log::trace!("Enum {} @ {}: matching {:?}", stringify!(#name), start_depth, event);
-          match event {
-            ::yaserde::xml::reader::XmlEvent::StartElement { ref name, ref attributes, .. } => {
-              match name.local_name.as_str() {
-                _named_element => {
-                  let _root = reader.next_event();
+          loop {
+            let event = reader.peek()?.to_owned();
+            ::yaserde::log::trace!("Enum {} @ {}: matching {:?}", stringify!(#name), start_depth, event);
+            match event {
+              ::yaserde::xml::reader::XmlEvent::StartElement { ref name, ref attributes, .. } => {
+                match name.local_name.as_str() {
+                  _named_element => {
+                    let _root = reader.next_event();
+                  }
+                }
+
+                if let ::yaserde::xml::reader::XmlEvent::Characters(content) = reader.peek()?.to_owned() {
+                  match content.parse::<u32>().map_err(|e| e.to_string())? {
+                    #match_to_enum
+                    _ => {}
+                  }
                 }
               }
-
-              if let ::yaserde::xml::reader::XmlEvent::Characters(content) = reader.peek()?.to_owned() {
-                match content.parse::<u32>().map_err(|e| e.to_string())? {
-                  #match_to_enum
-                  _ => {}
+              ::yaserde::xml::reader::XmlEvent::EndElement { ref name } => {
+                if name.local_name == named_element {
+                  break;
                 }
+                let _root = reader.next_event();
               }
-            }
-            ::yaserde::xml::reader::XmlEvent::EndElement { ref name } => {
-              if name.local_name == named_element {
-                break;
+              ::yaserde::xml::reader::XmlEvent::Characters(ref text_content) => {
+                let _root = reader.next_event();
               }
-              let _root = reader.next_event();
-            }
-            ::yaserde::xml::reader::XmlEvent::Characters(ref text_content) => {
-              let _root = reader.next_event();
-            }
-            ::yaserde::xml::reader::XmlEvent::EndDocument => {
-              if #flatten {
-                break;
-              }
+              ::yaserde::xml::reader::XmlEvent::EndDocument => {
+                if #flatten {
+                  break;
+                }
 
-              return ::std::result::Result::Err(
-                ::std::format!("End of document, missing some content ?"),
-              );
-            }
-            event => {
-              return ::std::result::Result::Err(::std::format!("unknown event {:?}", event))
+                return ::std::result::Result::Err(
+                  ::std::format!("End of document, missing some content ?"),
+                );
+              }
+              event => {
+                return ::std::result::Result::Err(::std::format!("unknown event {:?}", event))
+              }
             }
           }
-        }
 
-        ::yaserde::log::debug!("Enum {} @ {}: success", stringify!(#name), start_depth);
-        match enum_value {
-          ::std::option::Option::Some(value) => ::std::result::Result::Ok(value),
-          ::std::option::Option::None => {
-            ::std::result::Result::Ok(<#name as ::std::default::Default>::default())
-          },
+          ::yaserde::log::debug!("Enum {} @ {}: success", stringify!(#name), start_depth);
+          match enum_value {
+            ::std::option::Option::Some(value) => ::std::result::Result::Ok(value),
+            ::std::option::Option::None => {
+              ::std::result::Result::Ok(<#name as ::std::default::Default>::default())
+            },
+          }
         }
       }
     }
-  }
 }
 
 fn parse_variant(variant: &syn::Variant, name: &Ident) -> Option<TokenStream> {
-  let xml_element_name = YaSerdeAttribute::parse(&variant.attrs).xml_element_name(&variant.ident);
+    let xml_element_name = YaSerdeAttribute::parse(&variant.attrs).xml_element_name(&variant.ident);
 
-  let variant_name = {
-    let label = &variant.ident;
-    quote! { #name::#label }
-  };
+    let variant_name = {
+        let label = &variant.ident;
+        quote! { #name::#label }
+    };
 
-  match variant.fields {
-    Fields::Unit => Some(quote! {
-      v if v == #variant_name as u32 => {
-        enum_value = ::std::option::Option::Some(#variant_name);
-      }
-    }),
-    Fields::Unnamed(ref fields) => {
-      let field_visitors = build_unnamed_field_visitors(fields);
-      let call_visitors = build_unnamed_visitor_calls(fields, &variant_name);
+    match variant.fields {
+        Fields::Unit => Some(quote! {
+          v if v == #variant_name as u32 => {
+            enum_value = ::std::option::Option::Some(#variant_name);
+          }
+        }),
+        Fields::Unnamed(ref fields) => {
+            let field_visitors = build_unnamed_field_visitors(fields);
+            let call_visitors = build_unnamed_visitor_calls(fields, &variant_name);
 
-      if fields.unnamed.len() > 1 {
-        unimplemented!("enum variant with multiple fields")
-      }
-
-      Some(
-        fields
-          .unnamed
-          .iter()
-          .take(1)
-          .map(|_field| {
-            quote! {
-              #xml_element_name => {
-                #field_visitors
-                #call_visitors
-              }
+            if fields.unnamed.len() > 1 {
+                unimplemented!("enum variant with multiple fields")
             }
-          })
-          .collect(),
-      )
+
+            Some(
+                fields
+                    .unnamed
+                    .iter()
+                    .take(1)
+                    .map(|_field| {
+                        quote! {
+                          #xml_element_name => {
+                            #field_visitors
+                            #call_visitors
+                          }
+                        }
+                    })
+                    .collect(),
+            )
+        }
+        _ => None,
     }
-    _ => None,
-  }
 }
 
 fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
-  fields
+    fields
     .unnamed
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
@@ -209,10 +209,10 @@ fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
 }
 
 fn build_unnamed_visitor_calls(
-  fields: &syn::FieldsUnnamed,
-  variant_name: &TokenStream,
+    fields: &syn::FieldsUnnamed,
+    variant_name: &TokenStream,
 ) -> TokenStream {
-  fields
+    fields
     .unnamed
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))

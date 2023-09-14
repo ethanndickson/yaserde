@@ -7,32 +7,32 @@ use syn::Ident;
 use syn::{DataEnum, Generics};
 
 pub fn serialize(
-  data_enum: &DataEnum,
-  name: &Ident,
-  root: &str,
-  root_attributes: &YaSerdeAttribute,
-  generics: &Generics,
+    data_enum: &DataEnum,
+    name: &Ident,
+    root: &str,
+    root_attributes: &YaSerdeAttribute,
+    generics: &Generics,
 ) -> TokenStream {
-  let inner_enum_inspector = inner_enum_inspector(data_enum, name, root_attributes);
+    let inner_enum_inspector = inner_enum_inspector(data_enum, name, root_attributes);
 
-  implement_serializer(
-    name,
-    root,
-    root_attributes,
-    quote!(),
-    quote!(match self {
-      #inner_enum_inspector
-    }),
-    generics,
-  )
+    implement_serializer(
+        name,
+        root,
+        root_attributes,
+        quote!(),
+        quote!(match self {
+          #inner_enum_inspector
+        }),
+        generics,
+    )
 }
 
 fn inner_enum_inspector(
-  data_enum: &DataEnum,
-  name: &Ident,
-  root_attributes: &YaSerdeAttribute,
+    data_enum: &DataEnum,
+    name: &Ident,
+    root_attributes: &YaSerdeAttribute,
 ) -> TokenStream {
-  data_enum
+    data_enum
     .variants
     .iter()
     .map(|variant| {
