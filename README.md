@@ -1,58 +1,18 @@
-# yaserde &emsp; [![Build Status]][travis] [![Latest Version]][crates.io] [![Coverage Status]][coveralls]
+# SEPSerde (YaSerde for SEP)
 
-[Build Status]: https://travis-ci.com/media-io/yaserde.svg?branch=master
-[travis]: https://travis-ci.com/media-io/yaserde
-[Latest Version]: https://img.shields.io/crates/v/yaserde.svg
-[crates.io]: https://crates.io/crates/yaserde
+A fork of [YaSerde](https://github.com/media-io/yaserde) for use in IEEE 2030.5 Client & Servers as part of Smart Energy Protocol 2.0 (SEP 2.0).
 
-[Coverage Status]: https://coveralls.io/repos/github/media-io/yaserde/badge.svg?branch=master
-[coveralls]: https://coveralls.io/github/media-io/yaserde?branch=master
+Allows for serializing and deserialising all IEEE 2030.5 Resources to and from their XML representations
 
-**Yet Another Serializer/Deserializer specialized for XML**
+## Changes:
 
-## Goal
-This library will support XML de/ser-ializing with all specific features.
+- Enums are serialized as their internal integer representations, as required by the IEEE 2030.5 specification, instead of string representations of their variant.
 
-## Supported types
+- Support for generic recursive types, as required by the IEEE 2030.5 Notificaton resource.
+    - YaSerialize trait now implementations must provide the name of their type as a string literal for use in constructing `xsi:type` attributes.
 
-- [x] Struct
-- [x] Vec<AnyType>
-- [x] Enum
-- [x] Enum with complex types
-- [x] Option
-- [x] String
-- [x] bool
-- [x] number (u8, i8, u32, i32, f32, f64)
+- Allowed YaSerialize & YaDeserialize trait objects to be constructed.
 
-## Attributes
+- Imported utility proc macros from [xsd-parser-rs](https://github.com/lumeohq/xsd-parser-rs) to support serdeing of primitive newtypes.
 
-- [x] **attribute**: this field is defined as an attribute
-- [x] **default**: defines the default function to init the field
-- [x] **flatten**: Flatten the contents of the field
-- [x] **namespace**: defines the namespace of the field
-- [x] **rename**: be able to rename a field
-- [x] **root**: rename the based element. Used only at the XML root.
-- [x] **skip_serializing_if**: Skip the serialisation for this field if the condition is true
-- [x] **text**: this field match to the text content
-
-## Custom De/Ser-rializer
-
-Any type can define a custom deserializer and/or serializer.
-To implement it, define the implementation of YaDeserialize/YaSerialize
-
-```rust
-impl YaDeserialize for MyType {
-  fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String> {
-    // deserializer code
-  }
-}
-```
-
-```rust
-
-impl YaSerialize for MyType {
-  fn serialize<W: Write>(&self, writer: &mut yaserde::ser::Serializer<W>) -> Result<(), String> {
-    // serializer code
-  }
-}
-```
+- Support for serialising & deserialising `HexBinary\d+` types as per IEEE 2030.5.
