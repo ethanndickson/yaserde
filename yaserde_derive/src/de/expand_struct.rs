@@ -1,6 +1,6 @@
 use crate::common::{Field, YaSerdeAttribute, YaSerdeField};
 use crate::de::build_default_value::build_default_value;
-use heck::CamelCase;
+use heck::ToUpperCamelCase;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{DataStruct, Generics, Ident};
@@ -134,7 +134,7 @@ pub fn parse(
               self,
               v: &str,
             ) -> ::std::result::Result<Self::Value, ::std::string::String> {
-              ::std::result::Result::Ok(#field_type::from_str(#map_if_bool).unwrap())
+              #field_type::from_str(#map_if_bool).map_err(|e| e.to_string())
             }
           }
         })
@@ -510,7 +510,7 @@ fn build_visitor_ident(label: &str, span: Span, struct_name: Option<&syn::Path>)
     Ident::new(
         &format!(
             "__Visitor_{}_{}",
-            label.replace(".", "_").to_camel_case(),
+            label.replace(".", "_").to_upper_camel_case(),
             struct_id
         ),
         span,

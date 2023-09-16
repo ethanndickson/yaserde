@@ -658,8 +658,7 @@ fn de_subitem_issue_12() {
     }
 
     convert_and_validate!(
-        r#"
-    <?xml version="1.0" encoding="utf-8"?>
+        r#"<?xml version="1.0" encoding="utf-8"?>
     <Struct>
       <id>54</id>
       <SubStruct>
@@ -689,8 +688,7 @@ fn de_subitem_issue_12_with_sub() {
     }
 
     convert_and_validate!(
-        r#"
-    <?xml version="1.0" encoding="utf-8"?>
+        r#"<?xml version="1.0" encoding="utf-8"?>
     <Struct>
       <id>54</id>
       <SubStruct>
@@ -717,8 +715,7 @@ fn de_subitem_issue_12_attributes() {
     }
 
     convert_and_validate!(
-        r#"
-    <?xml version="1.0" encoding="utf-8"?>
+        r#"<?xml version="1.0" encoding="utf-8"?>
     <Struct id="54">
       <SubStruct id="86" />
     </Struct>
@@ -747,8 +744,7 @@ fn de_subitem_issue_12_attributes_with_sub() {
     }
 
     convert_and_validate!(
-        r#"
-    <?xml version="1.0" encoding="utf-8"?>
+        r#"<?xml version="1.0" encoding="utf-8"?>
     <Struct id="54">
       <sub1 id="63" />
       <sub2 id="72" />

@@ -2,7 +2,7 @@
 
 A fork of [YaSerde](https://github.com/media-io/yaserde) for use in IEEE 2030.5 Client & Servers as part of Smart Energy Protocol 2.0 (SEP 2.0).
 
-Allows for serializing and deserialising all IEEE 2030.5 Resources to and from their XML representations
+Allows for serializing and deserialising all IEEE 2030.5 Resources to and from their specification adhering XML representations.
 
 ## Changes:
 
