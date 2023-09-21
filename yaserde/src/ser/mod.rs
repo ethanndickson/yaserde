@@ -7,7 +7,7 @@ use std::str;
 use xml::writer::XmlEvent;
 use xml::{EmitterConfig, EventWriter};
 
-/// Serialize XML into a plain String with no formatting (EmitterConfig).
+/// Serialize XML into a plain String with IEEE 2030.5 Formatting
 pub fn to_string<T: YaSerialize>(model: &T) -> Result<String, String> {
     let buf = Cursor::new(Vec::new());
     let cursor = serialize_with_writer(model, buf, &Config::default())?;
@@ -135,8 +135,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            perform_indent: false,
-            write_document_declaration: true,
+            perform_indent: true,
+            write_document_declaration: false,
             indent_string: None,
         }
     }
