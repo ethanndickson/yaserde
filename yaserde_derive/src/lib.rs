@@ -38,8 +38,9 @@ pub fn derive_hexbinary(input: TokenStream) -> TokenStream {
     let yaserde: TokenStream2 = primitive_yaserde(input).into();
 
     quote! {
-      #serde
-      #yaserde
+        use ::std::str::FromStr as _;
+        #serde
+        #yaserde
     }
     .into()
 }
@@ -51,8 +52,9 @@ pub fn derive_primitive(input: TokenStream) -> TokenStream {
     let yaserde: TokenStream2 = primitive_yaserde(input).into();
 
     quote! {
-      #serde
-      #yaserde
+        use ::std::str::FromStr as _;
+        #serde
+        #yaserde
     }
     .into()
 }
