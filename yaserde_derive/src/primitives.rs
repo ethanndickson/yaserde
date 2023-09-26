@@ -61,10 +61,16 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
 pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
     let first = input.clone();
     let DeriveInput { ident, .. } = parse_macro_input!(first);
+    // Calculate number digits to determine whether leading zero should be added
     quote! {
       impl std::fmt::Display for #ident {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-          write!(f, "0x{:X}", self.0)
+          let digits = (self.0 as f64).log(16.0).ceil() as usize;
+          if digits % 2 == 0 {
+            write!(f, "{:X}", self.0)
+          } else {
+            write!(f,"0{:X}", self.0)
+          }
         }
       }
 
