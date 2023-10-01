@@ -65,7 +65,7 @@ pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
     quote! {
       impl std::fmt::Display for #ident {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-          let digits = (self.0 as f64).log(16.0).ceil() as usize;
+          let digits = (self.bits() as f64).log(16.0).ceil() as usize;
           if digits % 2 == 0 {
             write!(f, "{:X}", self.0)
           } else {
