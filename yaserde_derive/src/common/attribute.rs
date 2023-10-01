@@ -12,6 +12,7 @@ pub struct YaSerdeAttribute {
     pub namespaces: BTreeMap<String, String>,
     pub prefix: Option<String>,
     pub rename: Option<String>,
+    pub skip_serializing: bool,
     pub skip_serializing_if: Option<String>,
     pub text: bool,
     pub generic: bool,
@@ -40,6 +41,7 @@ impl YaSerdeAttribute {
         let mut namespaces = BTreeMap::new();
         let mut prefix = None;
         let mut rename = None;
+        let mut skip_serializing = false;
         let mut skip_serializing_if = None;
         let mut text = false;
         let mut generic = false;
@@ -86,6 +88,9 @@ impl YaSerdeAttribute {
                                 "rename" => {
                                     rename = get_value(&mut attr_iter);
                                 }
+                                "skip_serializing" => {
+                                    skip_serializing = true;
+                                }
                                 "skip_serializing_if" => {
                                     skip_serializing_if = get_value(&mut attr_iter);
                                 }
@@ -111,6 +116,7 @@ impl YaSerdeAttribute {
             namespaces,
             prefix,
             rename,
+            skip_serializing,
             skip_serializing_if,
             text,
             generic,
@@ -174,6 +180,7 @@ fn parse_empty_attributes() {
             namespaces: BTreeMap::new(),
             prefix: None,
             rename: None,
+            skip_serializing: false,
             skip_serializing_if: None,
             text: false,
             generic: false,
@@ -224,6 +231,7 @@ fn parse_attributes() {
             namespaces: BTreeMap::new(),
             prefix: None,
             rename: None,
+            skip_serializing: false,
             skip_serializing_if: None,
             text: false,
             generic: false,
@@ -274,6 +282,7 @@ fn only_parse_yaserde_attributes() {
             namespaces: BTreeMap::new(),
             prefix: None,
             rename: None,
+            skip_serializing: false,
             skip_serializing_if: None,
             text: false,
             generic: false,
@@ -327,6 +336,7 @@ fn parse_attributes_with_values() {
             namespaces,
             prefix: None,
             rename: None,
+            skip_serializing: false,
             skip_serializing_if: None,
             text: false,
             generic: false,
