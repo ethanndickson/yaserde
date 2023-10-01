@@ -142,7 +142,7 @@ pub fn serialize(
     .fields
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
-    .filter(|field| !field.is_attribute() || !field.is_skip_serializing())
+    .filter(|field| !field.is_attribute() && !field.is_skip_serializing())
     .map(|field| {
       let label = field.label();
       if field.is_text_content() {
