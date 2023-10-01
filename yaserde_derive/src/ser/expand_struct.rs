@@ -142,7 +142,7 @@ pub fn serialize(
     .fields
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
-    .filter(|field| !field.is_attribute())
+    .filter(|field| !field.is_attribute() || !field.is_skip_serializing())
     .map(|field| {
       let label = field.label();
       if field.is_text_content() {
@@ -162,6 +162,7 @@ pub fn serialize(
       let label_name = field.renamed_label(root_attributes);
       let conditions = condition_generator(&label, &field);
       let generic = field.is_generic();
+
 
       match field.get_type() {
         Field::FieldString
