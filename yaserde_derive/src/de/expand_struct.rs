@@ -162,7 +162,7 @@ pub fn parse(
     .fields
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
-    .filter(|field| !field.is_attribute() || !field.is_flatten())
+    .filter(|field| !field.is_attribute() || !field.is_flatten() || !field.is_skip_serializing())
     .map(|field| {
       let value_label = field.get_value_label();
       let label_name = field.renamed_label_without_namespace();
