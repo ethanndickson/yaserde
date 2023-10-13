@@ -78,7 +78,11 @@ pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
         type Err = ::std::string::String;
 
         fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
-          bitflags::parser::from_str(s).map_err(|e| e.to_string())
+          Self::from_bits(
+            s.parse()
+                .map_err(|_| String::from("Failed to parse Bitflag integer"))?,
+        )
+        .ok_or(String::from("Unknown bits were set in Bitflag"))
         }
       }
     }
