@@ -14,8 +14,11 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
 
     let serde = quote! {
         impl ::yaserde::YaSerialize for #struct_name {
-            fn name() -> &'static str {
-                #struct_name_literal
+            fn name() -> &'static str
+            where
+              Self: Sized,
+            {
+              #struct_name_literal
             }
             fn serialize<W: ::std::io::Write>(
                 &self,

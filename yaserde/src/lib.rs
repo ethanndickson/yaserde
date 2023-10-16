@@ -103,7 +103,9 @@ pub trait YaDeserialize {
 
 /// A **data structure** that can be serialized into any data format supported by YaSerDe.
 pub trait YaSerialize {
-    fn name() -> &'static str;
+    fn name() -> &'static str
+    where
+        Self: Sized;
 
     fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>
     where
@@ -181,7 +183,10 @@ pub trait Visitor<'de>: Sized {
 macro_rules! serialize_type {
     ($type:ty) => {
         impl YaSerialize for $type {
-            fn name() -> &'static str {
+            fn name() -> &'static str
+            where
+                Self: Sized,
+            {
                 "$type"
             }
 
