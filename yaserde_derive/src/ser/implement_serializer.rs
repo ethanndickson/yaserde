@@ -21,7 +21,10 @@ pub fn implement_serializer(
 
     quote! {
       impl #impl_generics ::yaserde::YaSerialize for #name #ty_generics #where_clause {
-        fn name() -> &'static str {
+        fn name() -> &'static str
+            where
+                Self: Sized,
+        {
           #name_str
         }
         #[allow(unused_variables)]

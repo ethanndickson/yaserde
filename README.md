@@ -4,6 +4,8 @@ A fork of [YaSerde](https://github.com/media-io/yaserde) for use in IEEE 2030.5 
 
 Allows for serializing and deserialising all IEEE 2030.5 Resources to and from their specification adhering XML representations.
 
+This library will require a rewrite/refactor at some point in the near future, to remove unused functionality and to minimise code generation for the sake of binary size.
+
 ## Changes:
 
 - Enums are serialized as their internal integer representations, as required by the IEEE 2030.5 specification, instead of string representations of their variant.
