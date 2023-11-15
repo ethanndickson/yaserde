@@ -18,7 +18,6 @@ pub fn implement_serializer(
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let name_str = attributes.xml_element_name(name);
-    let generic = attributes.generic;
 
     quote! {
       impl #impl_generics ::yaserde::YaSerialize for #name #ty_generics #where_clause {
@@ -54,7 +53,7 @@ pub fn implement_serializer(
               let mut attributes: ::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute> =
                 attributes.into_owned().to_vec().iter().map(|k| k.to_owned()).collect();
               attributes.extend(child_attributes);
-              let attributes = if #generic {
+              let attributes = if writer.generic() {
                 let mut tmp = vec![::yaserde::xml::attribute::OwnedAttribute {
                   name: ::yaserde::xml::name::OwnedName::local("xsi:type"),
                   value: <#name #ty_generics as ::yaserde::YaSerialize>::name().to_owned(),
