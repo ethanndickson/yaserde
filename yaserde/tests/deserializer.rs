@@ -313,18 +313,13 @@ fn de_attributes_complex() {
     init();
 
     mod other_mod {
-        #[derive(YaDeserialize, PartialEq, Debug)]
+        #[derive(Default, YaDeserialize, PartialEq, Debug)]
         pub enum AttrEnum {
+            #[default]
             #[yaserde(rename = "variant 1")]
             Variant1,
             #[yaserde(rename = "variant 2")]
             Variant2,
-        }
-
-        impl Default for AttrEnum {
-            fn default() -> AttrEnum {
-                AttrEnum::Variant1
-            }
         }
     }
 
@@ -481,17 +476,12 @@ fn de_enum() {
         items: Vec<Color>,
     }
 
-    #[derive(YaDeserialize, PartialEq, Debug)]
+    #[derive(Default, YaDeserialize, PartialEq, Debug)]
     #[yaserde(root = "color")]
     pub enum Color {
+        #[default]
         White,
         Black,
-    }
-
-    impl Default for Color {
-        fn default() -> Color {
-            Color::White
-        }
     }
 
     #[derive(YaDeserialize, PartialEq, Debug)]
@@ -543,17 +533,12 @@ fn de_attribute_enum() {
         background: Color,
     }
 
-    #[derive(YaDeserialize, PartialEq, Debug)]
+    #[derive(Default, YaDeserialize, PartialEq, Debug)]
     #[yaserde(root = "color")]
     pub enum Color {
+        #[default]
         White,
         Black,
-    }
-
-    impl Default for Color {
-        fn default() -> Color {
-            Color::White
-        }
     }
 
     let content = "<?xml version=\"1.0\" encoding=\"utf-8\"?><base background=\"1\" />";

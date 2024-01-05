@@ -9,15 +9,14 @@ pub fn generate_namespaces_definition(attributes: &YaSerdeAttribute) -> TokenStr
         .map(|(prefix, namespace)| {
             if let Some(dn) = &attributes.default_namespace {
                 if dn == prefix {
-                    return Some(quote!(
+                    return quote!(
                       .default_ns(#namespace)
-                    ));
+                    );
                 }
             }
-            Some(quote!(
+            quote!(
               .ns(#prefix, #namespace)
-            ))
+            )
         })
-        .flatten()
         .collect()
 }

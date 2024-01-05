@@ -61,7 +61,7 @@ pub struct Serializer<W: Write> {
     start_event_name: Option<String>,
 }
 
-impl<'de, W: Write> Serializer<W> {
+impl<W: Write> Serializer<W> {
     pub fn new(writer: EventWriter<W>) -> Self {
         Serializer {
             writer,

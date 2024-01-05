@@ -11,17 +11,12 @@ fn basic_enum() {
         color: Color,
     }
 
-    #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
+    #[derive(Default, Debug, PartialEq, YaDeserialize, YaSerialize)]
     #[yaserde(rename = "color")]
     pub enum Color {
+        #[default]
         White,
         Black,
-    }
-
-    impl Default for Color {
-        fn default() -> Color {
-            Color::White
-        }
     }
 
     assert_eq!(Color::default(), Color::White);
@@ -33,16 +28,11 @@ fn basic_enum() {
         blue: String,
     }
 
-    #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
+    #[derive(Default, Debug, PartialEq, YaDeserialize, YaSerialize)]
     pub enum Alpha {
+        #[default]
         Transparent,
         Opaque,
-    }
-
-    impl Default for Alpha {
-        fn default() -> Alpha {
-            Alpha::Transparent
-        }
     }
 
     let model = XmlStruct {
@@ -63,16 +53,11 @@ fn attribute_enum() {
         color: Color,
     }
 
-    #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
+    #[derive(Default, Debug, PartialEq, YaDeserialize, YaSerialize)]
     #[yaserde(rename = "color")]
     pub enum Color {
+        #[default]
         Pink,
-    }
-
-    impl Default for Color {
-        fn default() -> Color {
-            Color::Pink
-        }
     }
 
     let model = XmlStruct { color: Color::Pink };

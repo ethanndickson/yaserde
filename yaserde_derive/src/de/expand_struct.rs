@@ -23,22 +23,22 @@ pub fn parse(
         .fields
         .iter()
         .map(|field| YaSerdeField::new(field.clone()))
-        .map(|field| match field.get_type() {
-            Field::FieldStruct { struct_name } => build_default_value(
+        .filter_map(|field| match field.get_type() {
+            Field::Struct { struct_name } => build_default_value(
                 &field,
                 Some(quote!(#struct_name)),
                 quote!(<#struct_name as ::std::default::Default>::default()),
             ),
-            Field::FieldOption { .. } => {
+            Field::Option { .. } => {
                 build_default_value(&field, None, quote!(::std::option::Option::None))
             }
-            Field::FieldVec { data_type } => match *data_type {
-                Field::FieldStruct { ref struct_name } => build_default_value(
+            Field::Vec { data_type } => match *data_type {
+                Field::Struct { ref struct_name } => build_default_value(
                     &field,
                     Some(quote!(::std::vec::Vec<#struct_name>)),
                     quote!(::std::vec![]),
                 ),
-                Field::FieldOption { .. } | Field::FieldVec { .. } => {
+                Field::Option { .. } | Field::Vec { .. } => {
                     unimplemented!();
                 }
                 simple_type => {
@@ -58,7 +58,6 @@ pub fn parse(
                 build_default_value(&field, Some(type_token), value_builder)
             }
         })
-        .flatten()
         .collect();
 
     let field_visitors: TokenStream = data_struct
@@ -70,19 +69,13 @@ pub fn parse(
         return true;
       };
       match field.get_type() {
-        Field::FieldVec { data_type } => match *data_type {
-          Field::FieldStruct { .. } => false,
-          _ => true,
-        },
-        Field::FieldOption { data_type } => match *data_type {
-          Field::FieldStruct { .. } => false,
-          _ => true,
-        },
-        Field::FieldStruct { .. } => false,
+        Field::Vec { data_type } => !matches!(*data_type, Field::Struct { .. }),
+        Field::Option { data_type } => !matches!(*data_type, Field::Struct { .. }),
+        Field::Struct { .. } => false,
         _ => true,
       }
     })
-    .map(|field| {
+    .filter_map(|field| {
       let struct_visitor = |struct_name: syn::Path| {
         let struct_id: String = struct_name
           .segments
@@ -141,21 +134,20 @@ pub fn parse(
       };
 
       match field.get_type() {
-        Field::FieldStruct { struct_name } => struct_visitor(struct_name),
-        Field::FieldOption { data_type } => match *data_type {
-          Field::FieldStruct { struct_name } => struct_visitor(struct_name),
-          Field::FieldOption { .. } | Field::FieldVec { .. } => None,
+        Field::Struct { struct_name } => struct_visitor(struct_name),
+        Field::Option { data_type } => match *data_type {
+          Field::Struct { struct_name } => struct_visitor(struct_name),
+          Field::Option { .. } | Field::Vec { .. } => None,
           simple_type => simple_type_visitor(simple_type),
         },
-        Field::FieldVec { data_type } => match *data_type {
-          Field::FieldStruct { struct_name } => struct_visitor(struct_name),
-          Field::FieldOption { .. } | Field::FieldVec { .. } => None,
+        Field::Vec { data_type } => match *data_type {
+          Field::Struct { struct_name } => struct_visitor(struct_name),
+          Field::Option { .. } | Field::Vec { .. } => None,
           simple_type => simple_type_visitor(simple_type),
         },
         simple_type => simple_type_visitor(simple_type),
       }
     })
-    .flatten()
     .collect();
 
     let call_visitors: TokenStream = data_struct
@@ -163,7 +155,7 @@ pub fn parse(
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
     .filter(|field| (!field.is_attribute() || !field.is_flatten()) && !field.is_skip_serializing())
-    .map(|field| {
+    .filter_map(|field| {
       let value_label = field.get_value_label();
       let label_name = field.renamed_label_without_namespace();
 
@@ -191,26 +183,25 @@ pub fn parse(
           &field_visitor,
           &action,
           &field,
-          &root_attributes,
+          root_attributes,
         )
       };
 
       let visit_sub = |sub_type: Box<Field>, action: TokenStream| match *sub_type {
-        Field::FieldOption { .. } | Field::FieldVec { .. } => unimplemented!(),
-        Field::FieldStruct { struct_name } => visit_struct(struct_name, action),
+        Field::Option { .. } | Field::Vec { .. } => unimplemented!(),
+        Field::Struct { struct_name } => visit_struct(struct_name, action),
         simple_type => visit_simple(simple_type, action),
       };
 
       match field.get_type() {
-        Field::FieldStruct { struct_name } => visit_struct(struct_name, quote! { = value }),
-        Field::FieldOption { data_type } => {
+        Field::Struct { struct_name } => visit_struct(struct_name, quote! { = value }),
+        Field::Option { data_type } => {
           visit_sub(data_type, quote! { = ::std::option::Option::Some(value) })
         }
-        Field::FieldVec { data_type } => visit_sub(data_type, quote! { .push(value) }),
+        Field::Vec { data_type } => visit_sub(data_type, quote! { .push(value) }),
         simple_type => visit_simple(simple_type, quote! { = value }),
       }
     })
-    .flatten()
     .collect();
 
     let call_flatten_visitors: TokenStream = data_struct
@@ -222,13 +213,13 @@ pub fn parse(
             let value_label = field.get_value_label();
 
             match field.get_type() {
-                Field::FieldStruct { .. } => Some(quote! {
+                Field::Struct { .. } => quote! {
                   #value_label = ::yaserde::de::from_str(&unused_xml_elements)?;
-                }),
-                Field::FieldOption { data_type } => match *data_type {
-                    Field::FieldStruct { .. } => Some(quote! {
+                },
+                Field::Option { data_type } => match *data_type {
+                    Field::Struct { .. } => quote! {
                       #value_label = ::yaserde::de::from_str(&unused_xml_elements).ok();
-                    }),
+                    },
                     field_type => {
                         unimplemented!(r#""flatten" is not implemented for {:?}"#, field_type)
                     }
@@ -238,7 +229,6 @@ pub fn parse(
                 }
             }
         })
-        .flatten()
         .collect();
 
     let attributes_loading: TokenStream = data_struct
@@ -246,7 +236,7 @@ pub fn parse(
         .iter()
         .map(|field| YaSerdeField::new(field.clone()))
         .filter(|field| field.is_attribute())
-        .map(|field| {
+        .filter_map(|field| {
             let label = field.get_value_label();
             let label_name = field.renamed_label_without_namespace();
             let visitor_label = build_visitor_ident(&label_name, field.get_span(), None);
@@ -290,29 +280,28 @@ pub fn parse(
             };
 
             let visit_sub = |sub_type: Box<Field>, action: TokenStream| match *sub_type {
-                Field::FieldOption { .. } | Field::FieldVec { .. } => unimplemented!(),
-                Field::FieldStruct { struct_name } => visit_struct(struct_name, action),
+                Field::Option { .. } | Field::Vec { .. } => unimplemented!(),
+                Field::Struct { struct_name } => visit_struct(struct_name, action),
                 simple_type => visit_simple(simple_type, action),
             };
 
             match field.get_type() {
-                Field::FieldString => visit_string(),
-                Field::FieldOption { data_type } => {
+                Field::String => visit_string(),
+                Field::Option { data_type } => {
                     visit_sub(data_type, quote! { = ::std::option::Option::Some(value) })
                 }
-                Field::FieldVec { .. } => unimplemented!(),
-                Field::FieldStruct { struct_name } => visit_struct(struct_name, quote! { = value }),
+                Field::Vec { .. } => unimplemented!(),
+                Field::Struct { struct_name } => visit_struct(struct_name, quote! { = value }),
                 simple_type => visit_simple(simple_type, quote! { = value }),
             }
         })
-        .flatten()
         .collect();
 
     let set_text: TokenStream = data_struct
     .fields
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
-    .map(|field| {
+    .filter_map(|field| {
       let label = field.get_value_label();
 
       let set_text = |action: &TokenStream| {
@@ -324,21 +313,20 @@ pub fn parse(
       };
 
       match field.get_type() {
-        Field::FieldString => set_text(&quote! { text_content.to_owned() }),
-        Field::FieldOption { data_type } => match *data_type {
-          Field::FieldString => set_text(
+        Field::String => set_text(&quote! { text_content.to_owned() }),
+        Field::Option { data_type } => match *data_type {
+          Field::String => set_text(
             &quote! { if text_content.is_empty() { None } else { Some(text_content.to_owned()) }},
           ),
           _ => None,
         },
-        Field::FieldStruct { .. } | Field::FieldVec { .. } => None,
+        Field::Struct { .. } | Field::Vec { .. } => None,
         simple_type => {
           let type_token = TokenStream::from(simple_type);
           set_text(&quote! { #type_token::from_str(text_content).unwrap() })
         }
       }
     })
-    .flatten()
     .collect();
 
     let struct_builder: TokenStream = data_struct
@@ -510,7 +498,7 @@ fn build_visitor_ident(label: &str, span: Span, struct_name: Option<&syn::Path>)
     Ident::new(
         &format!(
             "__Visitor_{}_{}",
-            label.replace(".", "_").to_upper_camel_case(),
+            label.replace('.', "_").to_upper_camel_case(),
             struct_id
         ),
         span,

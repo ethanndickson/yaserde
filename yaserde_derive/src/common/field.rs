@@ -94,7 +94,7 @@ impl YaSerdeField {
         Ident::new(
             &format!(
                 "__Visitor_{}_{}",
-                label.replace(".", "_").to_upper_camel_case(),
+                label.replace('.', "_").to_upper_camel_case(),
                 struct_id
             ),
             self.get_span(),
@@ -113,14 +113,14 @@ impl YaSerdeField {
         self.attributes
             .default
             .as_ref()
-            .map(|default| Ident::new(&default, self.get_span()))
+            .map(|default| Ident::new(default, self.get_span()))
     }
 
     pub fn get_skip_serializing_if_function(&self) -> Option<Ident> {
         self.attributes
             .skip_serializing_if
             .as_ref()
-            .map(|skip_serializing_if| Ident::new(&skip_serializing_if, self.get_span()))
+            .map(|skip_serializing_if| Ident::new(skip_serializing_if, self.get_span()))
     }
 
     pub fn get_namespace_matching(
@@ -174,21 +174,21 @@ impl YaSerdeField {
 
 #[derive(Debug)]
 pub enum Field {
-    FieldString,
-    FieldBool,
-    FieldI8,
-    FieldU8,
-    FieldI16,
-    FieldU16,
-    FieldI32,
-    FieldU32,
-    FieldI64,
-    FieldU64,
-    FieldF32,
-    FieldF64,
-    FieldOption { data_type: Box<Field> },
-    FieldVec { data_type: Box<Field> },
-    FieldStruct { struct_name: syn::Path },
+    String,
+    Bool,
+    I8,
+    U8,
+    I16,
+    U16,
+    I32,
+    U32,
+    I64,
+    U64,
+    F32,
+    F64,
+    Option { data_type: Box<Field> },
+    Vec { data_type: Box<Field> },
+    Struct { struct_name: syn::Path },
 }
 
 impl Field {
@@ -201,22 +201,22 @@ impl From<&syn::Path> for Field {
     fn from(path: &syn::Path) -> Self {
         let result = if let Some(segment) = path.segments.last() {
             match segment.ident.to_string().as_str() {
-                "String" => Some(Field::FieldString),
-                "bool" => Some(Field::FieldBool),
-                "i8" => Some(Field::FieldI8),
-                "u8" => Some(Field::FieldU8),
-                "i16" => Some(Field::FieldI16),
-                "u16" => Some(Field::FieldU16),
-                "i32" => Some(Field::FieldI32),
-                "u32" => Some(Field::FieldU32),
-                "i64" => Some(Field::FieldI64),
-                "u64" => Some(Field::FieldU64),
-                "f32" => Some(Field::FieldF32),
-                "f64" => Some(Field::FieldF64),
-                "Option" => Some(Field::FieldOption {
+                "String" => Some(Field::String),
+                "bool" => Some(Field::Bool),
+                "i8" => Some(Field::I8),
+                "u8" => Some(Field::U8),
+                "i16" => Some(Field::I16),
+                "u16" => Some(Field::U16),
+                "i32" => Some(Field::I32),
+                "u32" => Some(Field::U32),
+                "i64" => Some(Field::I64),
+                "u64" => Some(Field::U64),
+                "f32" => Some(Field::F32),
+                "f64" => Some(Field::F64),
+                "Option" => Some(Field::Option {
                     data_type: Box::new(Field::from(segment)),
                 }),
-                "Vec" => Some(Field::FieldVec {
+                "Vec" => Some(Field::Vec {
                     data_type: Box::new(Field::from(segment)),
                 }),
                 _ => None,
@@ -225,7 +225,7 @@ impl From<&syn::Path> for Field {
             None
         };
 
-        result.unwrap_or_else(|| Field::FieldStruct {
+        result.unwrap_or_else(|| Field::Struct {
             struct_name: path.clone(),
         })
     }
@@ -258,18 +258,18 @@ impl From<&syn::PathSegment> for Field {
 impl From<Field> for proc_macro2::TokenStream {
     fn from(field: Field) -> proc_macro2::TokenStream {
         match field {
-            Field::FieldString => quote! { ::std::string::String },
-            Field::FieldBool => quote! { bool },
-            Field::FieldI8 => quote! { i8 },
-            Field::FieldU8 => quote! { u8 },
-            Field::FieldI16 => quote! { i16 },
-            Field::FieldU16 => quote! { u16 },
-            Field::FieldI32 => quote! { i32 },
-            Field::FieldU32 => quote! { u32 },
-            Field::FieldI64 => quote! { i64 },
-            Field::FieldU64 => quote! { u64 },
-            Field::FieldF32 => quote! { f32 },
-            Field::FieldF64 => quote! { f64 },
+            Field::String => quote! { ::std::string::String },
+            Field::Bool => quote! { bool },
+            Field::I8 => quote! { i8 },
+            Field::U8 => quote! { u8 },
+            Field::I16 => quote! { i16 },
+            Field::U16 => quote! { u16 },
+            Field::I32 => quote! { i32 },
+            Field::U32 => quote! { u32 },
+            Field::I64 => quote! { i64 },
+            Field::U64 => quote! { u64 },
+            Field::F32 => quote! { f32 },
+            Field::F64 => quote! { f64 },
             _ => panic!("Not a simple type: {:?}", field),
         }
     }
@@ -278,18 +278,18 @@ impl From<Field> for proc_macro2::TokenStream {
 impl From<&Field> for String {
     fn from(field: &Field) -> String {
         match field {
-            Field::FieldString => "str".to_string(),
-            Field::FieldBool => "bool".to_string(),
-            Field::FieldI8 => "i8".to_string(),
-            Field::FieldU8 => "u8".to_string(),
-            Field::FieldI16 => "i16".to_string(),
-            Field::FieldU16 => "u16".to_string(),
-            Field::FieldI32 => "i32".to_string(),
-            Field::FieldU32 => "u32".to_string(),
-            Field::FieldI64 => "i64".to_string(),
-            Field::FieldU64 => "u64".to_string(),
-            Field::FieldF32 => "f32".to_string(),
-            Field::FieldF64 => "f64".to_string(),
+            Field::String => "str".to_string(),
+            Field::Bool => "bool".to_string(),
+            Field::I8 => "i8".to_string(),
+            Field::U8 => "u8".to_string(),
+            Field::I16 => "i16".to_string(),
+            Field::U16 => "u16".to_string(),
+            Field::I32 => "i32".to_string(),
+            Field::U32 => "u32".to_string(),
+            Field::I64 => "i64".to_string(),
+            Field::U64 => "u64".to_string(),
+            Field::F32 => "f32".to_string(),
+            Field::F64 => "f64".to_string(),
             _ => panic!("Not a simple type: {:?}", field),
         }
     }

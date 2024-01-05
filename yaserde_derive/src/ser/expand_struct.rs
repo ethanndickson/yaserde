@@ -25,25 +25,25 @@ pub fn serialize(
                 let label_name = field.renamed_label(root_attributes);
 
                 match field.get_type() {
-          Field::FieldString
-          | Field::FieldBool
-          | Field::FieldI8
-          | Field::FieldU8
-          | Field::FieldI16
-          | Field::FieldU16
-          | Field::FieldI32
-          | Field::FieldU32
-          | Field::FieldI64
-          | Field::FieldU64
-          | Field::FieldF32
-          | Field::FieldF64 => field.ser_wrap_default_attribute(
+          Field::String
+          | Field::Bool
+          | Field::I8
+          | Field::U8
+          | Field::I16
+          | Field::U16
+          | Field::I32
+          | Field::U32
+          | Field::I64
+          | Field::U64
+          | Field::F32
+          | Field::F64 => field.ser_wrap_default_attribute(
             Some(quote!(self.#label.to_string())),
             quote!({
               struct_start_event.attr(#label_name, &yaserde_inner)
             }),
           ),
-          Field::FieldOption { data_type } => match *data_type {
-            Field::FieldString => field.ser_wrap_default_attribute(
+          Field::Option { data_type } => match *data_type {
+            Field::String => field.ser_wrap_default_attribute(
               None,
               quote!({
                 if let ::std::option::Option::Some(ref value) = self.#label {
@@ -53,17 +53,17 @@ pub fn serialize(
                 }
               }),
             ),
-            Field::FieldBool
-            | Field::FieldI8
-            | Field::FieldU8
-            | Field::FieldI16
-            | Field::FieldU16
-            | Field::FieldI32
-            | Field::FieldU32
-            | Field::FieldI64
-            | Field::FieldU64
-            | Field::FieldF32
-            | Field::FieldF64 => field.ser_wrap_default_attribute(
+            Field::Bool
+            | Field::I8
+            | Field::U8
+            | Field::I16
+            | Field::U16
+            | Field::I32
+            | Field::U32
+            | Field::I64
+            | Field::U64
+            | Field::F32
+            | Field::F64 => field.ser_wrap_default_attribute(
               Some(
                 quote!(self.#label.map_or_else(|| ::std::string::String::new(), |v| v.to_string())),
               ),
@@ -75,7 +75,7 @@ pub fn serialize(
                 }
               }),
             ),
-            Field::FieldVec { .. } => {
+            Field::Vec { .. } => {
               let item_ident = Ident::new("yaserde_item", field.get_span());
               let inner = enclose_formatted_characters(&item_ident, label_name);
 
@@ -90,7 +90,7 @@ pub fn serialize(
                 }),
               )
             }
-            Field::FieldStruct { .. } => field.ser_wrap_default_attribute(
+            Field::Struct { .. } => field.ser_wrap_default_attribute(
               Some(quote! {
               self.#label
                 .as_ref()
@@ -107,22 +107,22 @@ pub fn serialize(
                 }
               }),
             ),
-            Field::FieldOption { .. } => unimplemented!(),
+            Field::Option { .. } => unimplemented!(),
           },
-          Field::FieldStruct { .. } => field.ser_wrap_default_attribute(
+          Field::Struct { .. } => field.ser_wrap_default_attribute(
             Some(quote! { ::yaserde::ser::to_string_content(&self.#label)? }),
             quote!({
               struct_start_event.attr(#label_name, &yaserde_inner)
             }),
           ),
-          Field::FieldVec { .. } => {
+          Field::Vec { .. } => {
             // TODO
             quote!()
           }
         }
             } else {
                 match field.get_type() {
-                    Field::FieldStruct { .. } => {
+                    Field::Struct { .. } => {
                         quote!(
                           let (attributes, namespace) = self.#label.serialize_attributes(
                             ::std::vec![],
@@ -143,11 +143,11 @@ pub fn serialize(
     .iter()
     .map(|field| YaSerdeField::new(field.clone()))
     .filter(|field| !field.is_attribute() && !field.is_skip_serializing())
-    .map(|field| {
+    .filter_map(|field| {
       let label = field.label();
       if field.is_text_content() {
         return match field.get_type() {
-          Field::FieldOption { .. } => Some(quote!(
+          Field::Option { .. } => Some(quote!(
             let s = self.#label.as_deref().unwrap_or_default();
             let data_event = ::yaserde::xml::writer::XmlEvent::characters(s);
             writer.write(data_event).map_err(|e| e.to_string())?;
@@ -165,32 +165,32 @@ pub fn serialize(
 
 
       match field.get_type() {
-        Field::FieldString
-        | Field::FieldBool
-        | Field::FieldI8
-        | Field::FieldU8
-        | Field::FieldI16
-        | Field::FieldU16
-        | Field::FieldI32
-        | Field::FieldU32
-        | Field::FieldI64
-        | Field::FieldU64
-        | Field::FieldF32
-        | Field::FieldF64 => serialize_element(&label, label_name, &conditions),
+        Field::String
+        | Field::Bool
+        | Field::I8
+        | Field::U8
+        | Field::I16
+        | Field::U16
+        | Field::I32
+        | Field::U32
+        | Field::I64
+        | Field::U64
+        | Field::F32
+        | Field::F64 => serialize_element(&label, label_name, &conditions),
 
-        Field::FieldOption { data_type } => match *data_type {
-          Field::FieldString
-          | Field::FieldBool
-          | Field::FieldI8
-          | Field::FieldU8
-          | Field::FieldI16
-          | Field::FieldU16
-          | Field::FieldI32
-          | Field::FieldU32
-          | Field::FieldI64
-          | Field::FieldU64
-          | Field::FieldF32
-          | Field::FieldF64 => {
+        Field::Option { data_type } => match *data_type {
+          Field::String
+          | Field::Bool
+          | Field::I8
+          | Field::U8
+          | Field::I16
+          | Field::U16
+          | Field::I32
+          | Field::U32
+          | Field::I64
+          | Field::U64
+          | Field::F32
+          | Field::F64 => {
             let item_ident = Ident::new("yaserde_item", field.get_span());
             let inner = enclose_formatted_characters_for_value(&item_ident, label_name);
 
@@ -202,7 +202,7 @@ pub fn serialize(
               }
             })
           }
-          Field::FieldVec { .. } => {
+          Field::Vec { .. } => {
             let item_ident = Ident::new("yaserde_item", field.get_span());
             let inner = enclose_formatted_characters_for_value(&item_ident, label_name);
 
@@ -216,7 +216,7 @@ pub fn serialize(
               }
             })
           }
-          Field::FieldStruct { .. } => Some(if field.is_flatten() {
+          Field::Struct { .. } => Some(if field.is_flatten() {
             quote! {
               if let ::std::option::Option::Some(ref item) = &self.#label {
                 writer.set_start_event_name(::std::option::Option::None);
@@ -237,7 +237,7 @@ pub fn serialize(
           }),
           _ => unimplemented!(),
         },
-        Field::FieldStruct { .. } => {
+        Field::Struct { .. } => {
           let (start_event, skip_start) = if field.is_flatten() {
             (quote!(::std::option::Option::None), true)
           } else {
@@ -254,8 +254,8 @@ pub fn serialize(
             ::yaserde::YaSerialize::serialize(&self.#label, writer)?;
           })
         }
-        Field::FieldVec { data_type } => match *data_type {
-          Field::FieldString => {
+        Field::Vec { data_type } => match *data_type {
+          Field::String => {
             let item_ident = Ident::new("yaserde_item", field.get_span());
             let inner = enclose_formatted_characters_for_value(&item_ident, label_name);
 
@@ -265,17 +265,17 @@ pub fn serialize(
               }
             })
           }
-          Field::FieldBool
-          | Field::FieldI8
-          | Field::FieldU8
-          | Field::FieldI16
-          | Field::FieldU16
-          | Field::FieldI32
-          | Field::FieldU32
-          | Field::FieldI64
-          | Field::FieldU64
-          | Field::FieldF32
-          | Field::FieldF64 => {
+          Field::Bool
+          | Field::I8
+          | Field::U8
+          | Field::I16
+          | Field::U16
+          | Field::I32
+          | Field::U32
+          | Field::I64
+          | Field::U64
+          | Field::F32
+          | Field::F64 => {
             let item_ident = Ident::new("yaserde_item", field.get_span());
             let inner = enclose_formatted_characters_for_value(&item_ident, label_name);
 
@@ -285,7 +285,7 @@ pub fn serialize(
               }
             })
           }
-          Field::FieldOption { .. } => Some(quote! {
+          Field::Option { .. } => Some(quote! {
             for item in &self.#label {
               if let Some(value) = item {
                 writer.set_start_event_name(None);
@@ -295,7 +295,7 @@ pub fn serialize(
               }
             }
           }),
-          Field::FieldStruct { .. } => {
+          Field::Struct { .. } => {
             if field.is_flatten() {
               Some(quote! {
                 for item in &self.#label {
@@ -327,13 +327,12 @@ pub fn serialize(
               ::yaserde::YaSerialize::serialize(&self.#label, writer)?;
             })*/
           }
-          Field::FieldVec { .. } => {
+          Field::Vec { .. } => {
             unimplemented!();
           }
         },
       }
     })
-    .flatten()
     .collect();
 
     implement_serializer(

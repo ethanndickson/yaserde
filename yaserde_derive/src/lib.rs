@@ -62,5 +62,5 @@ pub fn derive_primitive(input: TokenStream) -> TokenStream {
 // Serialize & Deserialize a type using it's existing FromStr & Display implementation
 #[proc_macro_derive(DefaultYaSerde)]
 pub fn derive_default(input: TokenStream) -> TokenStream {
-    primitive_yaserde(input).into()
+    primitive_yaserde(input)
 }

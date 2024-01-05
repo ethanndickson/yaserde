@@ -39,23 +39,23 @@ fn inner_enum_inspector(
       let variant_attrs = YaSerdeAttribute::parse(&variant.attrs);
 
       let label = &variant.ident;
-      let label_name = build_label_name(&label, &variant_attrs, &root_attributes.default_namespace);
+      let label_name = build_label_name(label, &variant_attrs, &root_attributes.default_namespace);
 
       match variant.fields {
-        Fields::Unit => Some(quote! {
+        Fields::Unit => quote! {
           &#name::#label => {
             let internal = format!("{}",#name::#label as u32);
             let data_event = ::yaserde::xml::writer::XmlEvent::characters(&internal);
             writer.write(data_event).map_err(|e| e.to_string())?;
           }
-        }),
+        },
         Fields::Named(ref fields) => {
           let enum_fields: TokenStream = fields
             .named
             .iter()
             .map(|field| YaSerdeField::new(field.clone()))
             .filter(|field| !field.is_attribute())
-            .map(|field| {
+            .filter_map(|field| {
               let field_label = field.label();
 
               if field.is_text_content() {
@@ -68,19 +68,19 @@ fn inner_enum_inspector(
               let field_label_name = field.renamed_label(root_attributes);
 
               match field.get_type() {
-                Field::FieldString
-                | Field::FieldBool
-                | Field::FieldU8
-                | Field::FieldI8
-                | Field::FieldU16
-                | Field::FieldI16
-                | Field::FieldU32
-                | Field::FieldI32
-                | Field::FieldF32
-                | Field::FieldU64
-                | Field::FieldI64
-                | Field::FieldF64 => Some({
-                  quote! {
+                Field::String
+                | Field::Bool
+                | Field::U8
+                | Field::I8
+                | Field::U16
+                | Field::I16
+                | Field::U32
+                | Field::I32
+                | Field::F32
+                | Field::U64
+                | Field::I64
+                | Field::F64 => {
+                  Some(quote! {
                     match self {
                       &#name::#label { ref #field_label, .. } => {
                         let struct_start_event =
@@ -96,9 +96,9 @@ fn inner_enum_inspector(
                       },
                       _ => {},
                     }
-                  }
-                }),
-                Field::FieldStruct { .. } => Some(quote! {
+                  })
+                },
+                Field::Struct { .. } => Some(quote! {
                   match self {
                     &#name::#label{ref #field_label, ..} => {
                       writer.set_start_event_name(
@@ -110,7 +110,7 @@ fn inner_enum_inspector(
                     _ => {}
                   }
                 }),
-                Field::FieldVec { .. } => Some(quote! {
+                Field::Vec { .. } => Some(quote! {
                   match self {
                     &#name::#label { ref #field_label, .. } => {
                       for item in #field_label {
@@ -124,17 +124,16 @@ fn inner_enum_inspector(
                     _ => {}
                   }
                 }),
-                Field::FieldOption { .. } => None,
+                Field::Option { .. } => None,
               }
             })
-            .flatten()
             .collect();
 
-          Some(quote! {
+          quote! {
             &#name::#label{..} => {
               #enum_fields
             }
-          })
+          }
         }
         Fields::Unnamed(ref fields) => {
           let enum_fields: TokenStream = fields
@@ -174,7 +173,7 @@ fn inner_enum_inspector(
 
               let write_sub_type = |data_type| {
                 write_element(match data_type {
-                  Field::FieldString => &write_string_chars,
+                  Field::String => &write_string_chars,
                   _ => &serialize,
                 })
               };
@@ -191,40 +190,38 @@ fn inner_enum_inspector(
               };
 
               match field.get_type() {
-                Field::FieldOption { data_type } => {
+                Field::Option { data_type } => {
                   let write = write_sub_type(*data_type);
 
-                  Some(match_field(&quote! {
+                  match_field(&quote! {
                     if let ::std::option::Option::Some(item) = item {
                       #write
                     }
-                  }))
+                  })
                 }
-                Field::FieldVec { data_type } => {
+                Field::Vec { data_type } => {
                   let write = write_sub_type(*data_type);
 
-                  Some(match_field(&quote! {
+                  match_field(&quote! {
                     for item in item {
                       #write
                     }
-                  }))
+                  })
                 }
-                Field::FieldStruct { .. } => Some(write_element(&match_field(&serialize))),
-                Field::FieldString => Some(match_field(&write_element(&write_string_chars))),
-                _simple_type => Some(match_field(&write_simple_type)),
+                Field::Struct { .. } => write_element(&match_field(&serialize)),
+                Field::String => match_field(&write_element(&write_string_chars)),
+                _simple_type => match_field(&write_simple_type),
               }
             })
-            .flatten()
             .collect();
 
-          Some(quote! {
+          quote! {
             &#name::#label{..} => {
               #enum_fields
             }
-          })
+          }
         }
       }
     })
-    .flatten()
     .collect()
 }

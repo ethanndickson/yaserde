@@ -326,21 +326,16 @@ fn struct_default_namespace_via_attribute_with_prefix() {
 fn enum_namespace() {
     init();
 
-    #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
+    #[derive(Default, Debug, PartialEq, YaDeserialize, YaSerialize)]
     #[yaserde(
         rename = "root",
         prefix = "ns",
         namespace = "ns: http://www.sample.com/ns/domain"
     )]
     pub enum XmlStruct {
+        #[default]
         #[yaserde(prefix = "ns")]
         Item,
-    }
-
-    impl Default for XmlStruct {
-        fn default() -> XmlStruct {
-            XmlStruct::Item
-        }
     }
 
     let content = r#"
@@ -358,21 +353,16 @@ fn enum_namespace() {
 fn enum_multi_namespaces() {
     init();
 
-    #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
+    #[derive(Default, Debug, PartialEq, YaDeserialize, YaSerialize)]
     #[yaserde(
         rename = "root",
         namespace = "ns1: http://www.sample.com/ns/domain1",
         namespace = "ns2: http://www.sample.com/ns/domain2"
     )]
     pub enum XmlStruct {
+        #[default]
         Item1,
         Item2,
-    }
-
-    impl Default for XmlStruct {
-        fn default() -> XmlStruct {
-            XmlStruct::Item1
-        }
     }
 
     let model = XmlStruct::Item1;
@@ -429,27 +419,27 @@ fn struct_bad_namespace() {
 
 #[test]
 fn struct_default_namespace_no_prefix() {
-  init();
+    init();
 
-  #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
-  #[yaserde(rename = "book", namespace = "http://www.sample.com/ns/domain")]
-  pub struct Book {
-    author: String,
-    title: String,
-  }
+    #[derive(Debug, PartialEq, YaDeserialize, YaSerialize)]
+    #[yaserde(rename = "book", namespace = "http://www.sample.com/ns/domain")]
+    pub struct Book {
+        author: String,
+        title: String,
+    }
 
-  let content = r#"
+    let content = r#"
     <book xmlns="http://www.sample.com/ns/domain">
       <author>Antoine de Saint-Exupéry</author>
       <title>Little prince</title>
     </book>
   "#;
 
-  let model = Book {
-    author: "Antoine de Saint-Exupéry".to_owned(),
-    title: "Little prince".to_owned(),
-  };
+    let model = Book {
+        author: "Antoine de Saint-Exupéry".to_owned(),
+        title: "Little prince".to_owned(),
+    };
 
-  serialize_and_validate!(model, content);
-  deserialize_and_validate!(content, model, Book);
+    serialize_and_validate!(model, content);
+    deserialize_and_validate!(content, model, Book);
 }

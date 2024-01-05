@@ -177,36 +177,22 @@ fn ser_attributes() {
 #[test]
 fn ser_attributes_complex() {
     mod other_mod {
-        #[derive(YaSerialize, PartialEq, Debug)]
+        #[derive(Default, YaSerialize, PartialEq, Debug)]
         pub enum AttrEnum {
+            #[default]
             #[yaserde(rename = "variant 1")]
             Variant1,
             #[yaserde(rename = "variant 2")]
             Variant2,
         }
-
-        impl Default for AttrEnum {
-            fn default() -> AttrEnum {
-                AttrEnum::Variant1
-            }
-        }
     }
 
-    #[derive(YaSerialize, PartialEq, Debug)]
+    #[derive(Default, YaSerialize, PartialEq, Debug)]
     pub struct Struct {
         #[yaserde(attribute)]
         attr_option_string: Option<String>,
         #[yaserde(attribute)]
         attr_option_enum: Option<other_mod::AttrEnum>,
-    }
-
-    impl Default for Struct {
-        fn default() -> Struct {
-            Struct {
-                attr_option_string: None,
-                attr_option_enum: None,
-            }
-        }
     }
 
     serialize_and_validate!(

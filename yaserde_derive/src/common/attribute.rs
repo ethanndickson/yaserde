@@ -23,7 +23,7 @@ fn get_value(iter: &mut IntoIter) -> Option<String> {
         (iter.next(), iter.next())
     {
         if operator.as_char() == '=' {
-            Some(value.to_string().replace("\"", ""))
+            Some(value.to_string().replace('\"', ""))
         } else {
             None
         }
@@ -146,9 +146,8 @@ impl YaSerdeAttribute {
     ) -> TokenStream {
         let namespaces_matches: TokenStream = self
             .namespaces
-            .iter()
-            .map(|(_, namespace)| Some(quote!(#namespace => {})))
-            .flatten()
+            .values()
+            .map(|namespace| quote!(#namespace => {}))
             .collect();
 
         quote!(
