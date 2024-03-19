@@ -1,5 +1,5 @@
 // related to issue https://github.com/media-io/yaserde/issues/11
-use yaserde::*;
+use sepserde::*;
 
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
 #[yaserde(root = "DOMSymbolItem")]
@@ -44,8 +44,8 @@ struct DOMLayer {
 
 #[test]
 fn parsing_ln_dom() {
+    use sepserde::de::from_str;
     use std::fs;
-    use yaserde::de::from_str;
 
     let filename = "tests/data/ln-dom.xml";
 

@@ -1,0 +1,21 @@
+[package]
+name = "sepserde_derive"
+version = "0.8.1"
+authors = ["Marc-Antoine Arnaud <arnaud.marcantoine@gmail.com>","Ethan Dickson <ethanndickson@gmail.com>"]
+description = "XML Serialization and deserialization proc macros for IEEE 2030.5"
+keywords = ["Serialization", "Deserialization"]
+license = "MIT"
+repository = "https://github.com/ethanndickson/yaserde"
+readme = "../README.md"
+edition = "2018"
+
+[dependencies]
+heck = "0.4.0"
+syn = { version = "~1.0", features = ["visit", "extra-traits"] }
+proc-macro2 = "~1.0"
+quote = "~1.0"
+xml-rs = "0.8.3"
+log = "0.4"
+
+[lib]
+proc-macro = true

@@ -25,20 +25,20 @@ pub fn parse(
     let flatten = root_attributes.flatten;
 
     quote! {
-      impl ::yaserde::YaDeserialize for #name {
+      impl ::sepserde::YaDeserialize for #name {
         #[allow(unused_variables)]
         fn deserialize<R: ::std::io::Read>(
-          reader: &mut ::yaserde::de::Deserializer<R>,
+          reader: &mut ::sepserde::de::Deserializer<R>,
         ) -> ::std::result::Result<Self, ::std::string::String> where Self: Sized {
           let (named_element, enum_namespace) =
-            if let ::yaserde::xml::reader::XmlEvent::StartElement{ name, .. } = reader.peek()?.to_owned() {
+            if let ::sepserde::xml::reader::XmlEvent::StartElement{ name, .. } = reader.peek()?.to_owned() {
               (name.local_name.to_owned(), name.namespace.clone())
             } else {
               (::std::string::String::from(#root), ::std::option::Option::None)
             };
 
           let start_depth = reader.depth();
-          ::yaserde::log::debug!("Enum {} @ {}: start to parse {:?}", stringify!(#name), start_depth, named_element);
+          ::sepserde::log::debug!("Enum {} @ {}: start to parse {:?}", stringify!(#name), start_depth, named_element);
 
           #namespaces_matching
 
@@ -47,32 +47,32 @@ pub fn parse(
 
           loop {
             let event = reader.peek()?.to_owned();
-            ::yaserde::log::trace!("Enum {} @ {}: matching {:?}", stringify!(#name), start_depth, event);
+            ::sepserde::log::trace!("Enum {} @ {}: matching {:?}", stringify!(#name), start_depth, event);
             match event {
-              ::yaserde::xml::reader::XmlEvent::StartElement { ref name, ref attributes, .. } => {
+              ::sepserde::xml::reader::XmlEvent::StartElement { ref name, ref attributes, .. } => {
                 match name.local_name.as_str() {
                   _named_element => {
                     let _root = reader.next_event();
                   }
                 }
 
-                if let ::yaserde::xml::reader::XmlEvent::Characters(content) = reader.peek()?.to_owned() {
+                if let ::sepserde::xml::reader::XmlEvent::Characters(content) = reader.peek()?.to_owned() {
                   match content.parse::<u32>().map_err(|e| e.to_string())? {
                     #match_to_enum
                     _ => {}
                   }
                 }
               }
-              ::yaserde::xml::reader::XmlEvent::EndElement { ref name } => {
+              ::sepserde::xml::reader::XmlEvent::EndElement { ref name } => {
                 if name.local_name == named_element {
                   break;
                 }
                 let _root = reader.next_event();
               }
-              ::yaserde::xml::reader::XmlEvent::Characters(ref text_content) => {
+              ::sepserde::xml::reader::XmlEvent::Characters(ref text_content) => {
                 let _root = reader.next_event();
               }
-              ::yaserde::xml::reader::XmlEvent::EndDocument => {
+              ::sepserde::xml::reader::XmlEvent::EndDocument => {
                 if #flatten {
                   break;
                 }
@@ -87,7 +87,7 @@ pub fn parse(
             }
           }
 
-          ::yaserde::log::debug!("Enum {} @ {}: success", stringify!(#name), start_depth);
+          ::sepserde::log::debug!("Enum {} @ {}: success", stringify!(#name), start_depth);
           match enum_value {
             ::std::option::Option::Some(value) => ::std::result::Result::Ok(value),
             ::std::option::Option::None => {
@@ -154,7 +154,7 @@ fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
         quote! {
           #[allow(non_snake_case, non_camel_case_types)]
           struct #visitor_label;
-          impl<'de> ::yaserde::Visitor<'de> for #visitor_label {
+          impl<'de> ::sepserde::Visitor<'de> for #visitor_label {
             type Value = #field_type;
 
             fn #visitor(
@@ -192,7 +192,7 @@ fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
             &quote! {
               let content = "<".to_string() + #struct_id + ">" + v + "</" + #struct_id + ">";
               let value: ::std::result::Result<#struct_name, ::std::string::String> =
-                ::yaserde::de::from_str(&content);
+                ::sepserde::de::from_str(&content);
               value
             },
           ))
@@ -229,11 +229,11 @@ fn build_unnamed_visitor_calls(
           let visitor = #visitor_label{};
 
           let result = reader.read_inner_value::<#field_type, _>(|reader| {
-            if let ::yaserde::xml::reader::XmlEvent::EndElement { .. } = *reader.peek()? {
+            if let ::sepserde::xml::reader::XmlEvent::EndElement { .. } = *reader.peek()? {
               return visitor.#visitor("");
             }
 
-            if let ::std::result::Result::Ok(::yaserde::xml::reader::XmlEvent::Characters(s))
+            if let ::std::result::Result::Ok(::sepserde::xml::reader::XmlEvent::Characters(s))
               = reader.next_event()
             {
               visitor.#visitor(&s)
@@ -252,7 +252,7 @@ fn build_unnamed_visitor_calls(
 
       let call_struct_visitor = |struct_name, action| {
         Some(quote! {
-          match <#struct_name as ::yaserde::YaDeserialize>::deserialize(reader) {
+          match <#struct_name as ::sepserde::YaDeserialize>::deserialize(reader) {
             Ok(value) => {
               #action;
               let _root = reader.next_event();

@@ -1,12 +1,7 @@
-#[macro_use]
-extern crate yaserde;
-#[macro_use]
-extern crate yaserde_derive;
-
 use log::debug;
+use sepserde::de::from_str;
+use sepserde::{deserialize_and_validate, serialize_and_validate, YaDeserialize, YaSerialize};
 use std::io::Read;
-use yaserde::de::from_str;
-use yaserde::YaDeserialize;
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
@@ -115,6 +110,7 @@ fn de_multiple_segments() {
     init();
 
     mod other_mod {
+        use sepserde::YaDeserialize;
         #[derive(YaDeserialize, PartialEq, Debug, Default)]
         pub struct Page {
             pub number: i32,
@@ -253,7 +249,7 @@ fn de_attributes_custom_deserializer() {
 
         impl YaDeserialize for Attributes {
             fn deserialize<R: Read>(
-                reader: &mut yaserde::de::Deserializer<R>,
+                reader: &mut sepserde::de::Deserializer<R>,
             ) -> Result<Self, String>
             where
                 Self: Sized,
@@ -313,6 +309,7 @@ fn de_attributes_complex() {
     init();
 
     mod other_mod {
+        use sepserde::YaDeserialize;
         #[derive(Default, YaDeserialize, PartialEq, Debug)]
         pub enum AttrEnum {
             #[default]
@@ -591,7 +588,7 @@ fn de_custom() {
     }
 
     impl YaDeserialize for Day {
-        fn deserialize<R: Read>(reader: &mut yaserde::de::Deserializer<R>) -> Result<Self, String>
+        fn deserialize<R: Read>(reader: &mut sepserde::de::Deserializer<R>) -> Result<Self, String>
         where
             Self: Sized,
         {

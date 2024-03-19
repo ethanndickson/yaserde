@@ -1,7 +1,6 @@
-#[macro_use]
-extern crate yaserde_derive;
+use sepserde::YaDeserialize;
 
-use yaserde::de::from_str;
+use sepserde::de::from_str;
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();

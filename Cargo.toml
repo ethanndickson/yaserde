@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "yaserde",
-  "yaserde_derive",
-  "examples",
+  "sepserde",
+  "sepserde_derive",
 ]

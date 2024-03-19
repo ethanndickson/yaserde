@@ -20,7 +20,7 @@ pub fn implement_serializer(
     let name_str = attributes.xml_element_name(name);
 
     quote! {
-      impl #impl_generics ::yaserde::YaSerialize for #name #ty_generics #where_clause {
+      impl #impl_generics ::sepserde::YaSerialize for #name #ty_generics #where_clause {
         fn name() -> &'static str
             where
                 Self: Sized,
@@ -30,33 +30,33 @@ pub fn implement_serializer(
         #[allow(unused_variables)]
         fn serialize<W: ::std::io::Write>(
           &self,
-          writer: &mut ::yaserde::ser::Serializer<W>,
+          writer: &mut ::sepserde::ser::Serializer<W>,
         ) -> ::std::result::Result<(), ::std::string::String> where Self: Sized {
           let skip = writer.skip_start_end();
 
           if !#flatten && !skip {
             let mut child_attributes = ::std::vec![];
-            let mut child_attributes_namespace = ::yaserde::xml::namespace::Namespace::empty();
+            let mut child_attributes_namespace = ::sepserde::xml::namespace::Namespace::empty();
 
             let yaserde_label = writer.get_start_event_name().unwrap_or_else(|| #root.to_string());
             let struct_start_event =
-              ::yaserde::xml::writer::XmlEvent::start_element(yaserde_label.as_ref()) #namespaces_definition;
+              ::sepserde::xml::writer::XmlEvent::start_element(yaserde_label.as_ref()) #namespaces_definition;
             #append_attributes
 
-            let event: ::yaserde::xml::writer::events::XmlEvent = struct_start_event.into();
+            let event: ::sepserde::xml::writer::events::XmlEvent = struct_start_event.into();
 
-            if let ::yaserde::xml::writer::events::XmlEvent::StartElement {
+            if let ::sepserde::xml::writer::events::XmlEvent::StartElement {
               name,
               attributes,
               namespace,
             } = event {
-              let mut attributes: ::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute> =
+              let mut attributes: ::std::vec::Vec<::sepserde::xml::attribute::OwnedAttribute> =
                 attributes.into_owned().to_vec().iter().map(|k| k.to_owned()).collect();
               attributes.extend(child_attributes);
               let attributes = if writer.generic() {
-                let mut tmp = vec![::yaserde::xml::attribute::OwnedAttribute {
-                  name: ::yaserde::xml::name::OwnedName::local("xsi:type"),
-                  value: <#name #ty_generics as ::yaserde::YaSerialize>::name().to_owned(),
+                let mut tmp = vec![::sepserde::xml::attribute::OwnedAttribute {
+                  name: ::sepserde::xml::name::OwnedName::local("xsi:type"),
+                  value: <#name #ty_generics as ::sepserde::YaSerialize>::name().to_owned(),
                 }];
                 tmp.extend(attributes);
                 tmp
@@ -69,7 +69,7 @@ pub fn implement_serializer(
               let mut all_namespaces = namespace.into_owned();
               all_namespaces.extend(&child_attributes_namespace);
 
-              writer.write(::yaserde::xml::writer::events::XmlEvent::StartElement{
+              writer.write(::sepserde::xml::writer::events::XmlEvent::StartElement{
                 name,
                 attributes: ::std::borrow::Cow::Owned(all_attributes),
                 namespace: ::std::borrow::Cow::Owned(all_namespaces)
@@ -82,7 +82,7 @@ pub fn implement_serializer(
           #inner_inspector
 
           if !#flatten && !skip {
-            let struct_end_event = ::yaserde::xml::writer::XmlEvent::end_element();
+            let struct_end_event = ::sepserde::xml::writer::XmlEvent::end_element();
             writer.write(struct_end_event).map_err(|e| e.to_string())?;
           }
 
@@ -91,27 +91,27 @@ pub fn implement_serializer(
 
         fn serialize_attributes(
           &self,
-          mut source_attributes: ::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute>,
-          mut source_namespace: ::yaserde::xml::namespace::Namespace,
+          mut source_attributes: ::std::vec::Vec<::sepserde::xml::attribute::OwnedAttribute>,
+          mut source_namespace: ::sepserde::xml::namespace::Namespace,
         ) -> ::std::result::Result<
-          (::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute>, ::yaserde::xml::namespace::Namespace),
+          (::std::vec::Vec<::sepserde::xml::attribute::OwnedAttribute>, ::sepserde::xml::namespace::Namespace),
           ::std::string::String
         > where Self: Sized {
-          let mut child_attributes = ::std::vec::Vec::<::yaserde::xml::attribute::OwnedAttribute>::new();
-          let mut child_attributes_namespace = ::yaserde::xml::namespace::Namespace::empty();
+          let mut child_attributes = ::std::vec::Vec::<::sepserde::xml::attribute::OwnedAttribute>::new();
+          let mut child_attributes_namespace = ::sepserde::xml::namespace::Namespace::empty();
 
           let struct_start_event =
-            ::yaserde::xml::writer::XmlEvent::start_element("temporary_element_to_generate_attributes")
+            ::sepserde::xml::writer::XmlEvent::start_element("temporary_element_to_generate_attributes")
             #namespaces_definition;
 
           #append_attributes
-          let event: ::yaserde::xml::writer::events::XmlEvent = struct_start_event.into();
+          let event: ::sepserde::xml::writer::events::XmlEvent = struct_start_event.into();
 
-          if let ::yaserde::xml::writer::events::XmlEvent::StartElement { attributes, namespace, .. } = event {
+          if let ::sepserde::xml::writer::events::XmlEvent::StartElement { attributes, namespace, .. } = event {
             source_namespace.extend(&namespace.into_owned());
             source_namespace.extend(&child_attributes_namespace);
 
-            let a: ::std::vec::Vec<::yaserde::xml::attribute::OwnedAttribute> =
+            let a: ::std::vec::Vec<::sepserde::xml::attribute::OwnedAttribute> =
               attributes.into_owned().to_vec().iter().map(|k| k.to_owned()).collect();
             source_attributes.extend(a);
             source_attributes.extend(child_attributes);

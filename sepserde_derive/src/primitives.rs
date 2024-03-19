@@ -13,7 +13,7 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
     let struct_name_literal = &ast.ident.to_string();
 
     let serde = quote! {
-        impl ::yaserde::YaSerialize for #struct_name {
+        impl ::sepserde::YaSerialize for #struct_name {
             fn name() -> &'static str
             where
               Self: Sized,
@@ -22,9 +22,9 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
             }
             fn serialize<W: ::std::io::Write>(
                 &self,
-                writer: &mut ::yaserde::ser::Serializer<W>,
+                writer: &mut ::sepserde::ser::Serializer<W>,
             ) -> ::std::result::Result<(), ::std::string::String> {
-              ::yaserde::primitives::serialize_primitives(
+              ::sepserde::primitives::serialize_primitives(
                     self,
                     #struct_name_literal,
                     writer, |s| s.to_string(),
@@ -46,11 +46,11 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl ::yaserde::YaDeserialize for #struct_name {
+        impl ::sepserde::YaDeserialize for #struct_name {
             fn deserialize<R: ::std::io::Read>(
-                reader: &mut ::yaserde::de::Deserializer<R>,
+                reader: &mut ::sepserde::de::Deserializer<R>,
             ) -> ::std::result::Result<Self, ::std::string::String> {
-                ::yaserde::primitives::deserialize_primitives(
+                ::sepserde::primitives::deserialize_primitives(
                     reader,
                     |s| #struct_name::from_str(s).map_err(|e| e.to_string()),
                 )

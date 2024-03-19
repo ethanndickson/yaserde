@@ -1,10 +1,6 @@
-#[macro_use]
-extern crate yaserde;
-#[macro_use]
-extern crate yaserde_derive;
+use sepserde::{serialize_and_validate, YaSerialize};
 
 use std::io::Write;
-use yaserde::YaSerialize;
 
 #[test]
 fn ser_basic() {
@@ -177,6 +173,8 @@ fn ser_attributes() {
 #[test]
 fn ser_attributes_complex() {
     mod other_mod {
+        use sepserde::YaSerialize;
+
         #[derive(Default, YaSerialize, PartialEq, Debug)]
         pub enum AttrEnum {
             #[default]
@@ -386,7 +384,7 @@ fn ser_custom() {
     impl YaSerialize for Day {
         fn serialize<W: Write>(
             &self,
-            writer: &mut yaserde::ser::Serializer<W>,
+            writer: &mut sepserde::ser::Serializer<W>,
         ) -> Result<(), String>
         where
             Self: Sized,

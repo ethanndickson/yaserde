@@ -1,0 +1,19 @@
+[package]
+name = "sepserde"
+version = "0.8.2"
+authors = ["Marc-Antoine Arnaud <arnaud.marcantoine@gmail.com>","Ethan Dickson <ethanndickson@gmail.com>"]
+description = "XML Serialization and deserialization for IEEE 2030.5"
+keywords = ["Serialization", "Deserialization", "XML"]
+license = "MIT"
+repository = "https://github.com/ethanndickson/yaserde"
+readme = "../README.md"
+edition = "2018"
+
+[dependencies]
+sepserde_derive = { version = "0.8.1" }
+xml-rs = "0.8.3"
+log = "0.4"
+
+[dev-dependencies]
+env_logger = "0.10.0"
+sepserde_derive = { version = "0.8.1" }

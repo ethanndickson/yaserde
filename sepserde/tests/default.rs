@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate yaserde;
-#[macro_use]
-extern crate yaserde_derive;
+use sepserde::{deserialize_and_validate, serialize_and_validate, YaDeserialize, YaSerialize};
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
@@ -125,6 +122,8 @@ fn module_inclusion() {
     init();
 
     mod module {
+        use sepserde::{YaDeserialize, YaSerialize};
+
         #[derive(Debug, Default, PartialEq, YaDeserialize, YaSerialize)]
         #[yaserde(rename = "module")]
         pub struct Module {

@@ -1,4 +1,4 @@
-use yaserde::YaSerialize;
+use sepserde::YaSerialize;
 
 #[derive(Default, PartialEq, Debug, YaSerialize)]
 struct CpuDef {
@@ -182,12 +182,12 @@ fn parsing_svd() {
     };
 
     // Display pretty printed XML
-    let yaserde_cfg = yaserde::ser::Config {
+    let yaserde_cfg = sepserde::ser::Config {
         perform_indent: true,
         ..Default::default()
     };
 
-    let serialized = yaserde::ser::to_string_with_config(&device, &yaserde_cfg).unwrap();
+    let serialized = sepserde::ser::to_string_with_config(&device, &yaserde_cfg).unwrap();
 
     let reference =
         fs::read_to_string("tests/data/svd.xml").expect("something went wrong reading the file");

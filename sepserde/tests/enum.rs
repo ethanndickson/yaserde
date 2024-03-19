@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate yaserde;
-#[macro_use]
-extern crate yaserde_derive;
+use sepserde::{deserialize_and_validate, serialize_and_validate};
 
 #[test]
 fn basic_enum() {

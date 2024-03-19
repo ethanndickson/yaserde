@@ -45,7 +45,7 @@ fn inner_enum_inspector(
         Fields::Unit => quote! {
           &#name::#label => {
             let internal = format!("{}",#name::#label as u32);
-            let data_event = ::yaserde::xml::writer::XmlEvent::characters(&internal);
+            let data_event = ::sepserde::xml::writer::XmlEvent::characters(&internal);
             writer.write(data_event).map_err(|e| e.to_string())?;
           }
         },
@@ -60,7 +60,7 @@ fn inner_enum_inspector(
 
               if field.is_text_content() {
                 return Some(quote!(
-                  let data_event = ::yaserde::xml::writer::XmlEvent::characters(&self.#field_label);
+                  let data_event = ::sepserde::xml::writer::XmlEvent::characters(&self.#field_label);
                   writer.write(data_event).map_err(|e| e.to_string())?;
                 ));
               }
@@ -84,14 +84,14 @@ fn inner_enum_inspector(
                     match self {
                       &#name::#label { ref #field_label, .. } => {
                         let struct_start_event =
-                          ::yaserde::xml::writer::XmlEvent::start_element(#field_label_name);
+                          ::sepserde::xml::writer::XmlEvent::start_element(#field_label_name);
                         writer.write(struct_start_event).map_err(|e| e.to_string())?;
 
                         let string_value = #field_label.to_string();
-                        let data_event = ::yaserde::xml::writer::XmlEvent::characters(&string_value);
+                        let data_event = ::sepserde::xml::writer::XmlEvent::characters(&string_value);
                         writer.write(data_event).map_err(|e| e.to_string())?;
 
-                        let struct_end_event = ::yaserde::xml::writer::XmlEvent::end_element();
+                        let struct_end_event = ::sepserde::xml::writer::XmlEvent::end_element();
                         writer.write(struct_end_event).map_err(|e| e.to_string())?;
                       },
                       _ => {},
@@ -105,7 +105,7 @@ fn inner_enum_inspector(
                         ::std::option::Option::Some(#field_label_name.to_string()),
                       );
                       writer.set_skip_start_end(false);
-                      ::yaserde::YaSerialize::serialize(#field_label, writer)?;
+                      ::sepserde::YaSerialize::serialize(#field_label, writer)?;
                     },
                     _ => {}
                   }
@@ -118,7 +118,7 @@ fn inner_enum_inspector(
                           ::std::option::Option::Some(#field_label_name.to_string()),
                         );
                         writer.set_skip_start_end(false);
-                        ::yaserde::YaSerialize::serialize(item, writer)?;
+                        ::sepserde::YaSerialize::serialize(item, writer)?;
                       }
                     },
                     _ => {}
@@ -144,31 +144,31 @@ fn inner_enum_inspector(
             .map(|field| {
               let write_element = |action: &TokenStream| {
                 quote! {
-                  let struct_start_event = ::yaserde::xml::writer::XmlEvent::start_element(#label_name);
+                  let struct_start_event = ::sepserde::xml::writer::XmlEvent::start_element(#label_name);
                   writer.write(struct_start_event).map_err(|e| e.to_string())?;
 
                   #action
 
-                  let struct_end_event = ::yaserde::xml::writer::XmlEvent::end_element();
+                  let struct_end_event = ::sepserde::xml::writer::XmlEvent::end_element();
                   writer.write(struct_end_event).map_err(|e| e.to_string())?;
                 }
               };
 
               let write_string_chars = quote! {
-                let data_event = ::yaserde::xml::writer::XmlEvent::characters(item);
+                let data_event = ::sepserde::xml::writer::XmlEvent::characters(item);
                 writer.write(data_event).map_err(|e| e.to_string())?;
               };
 
               let write_simple_type = write_element(&quote! {
                 let s = item.to_string();
-                let data_event = ::yaserde::xml::writer::XmlEvent::characters(&s);
+                let data_event = ::sepserde::xml::writer::XmlEvent::characters(&s);
                 writer.write(data_event).map_err(|e| e.to_string())?;
               });
 
               let serialize = quote! {
                 writer.set_start_event_name(::std::option::Option::None);
                 writer.set_skip_start_end(true);
-                ::yaserde::YaSerialize::serialize(item, writer)?;
+                ::sepserde::YaSerialize::serialize(item, writer)?;
               };
 
               let write_sub_type = |data_type| {

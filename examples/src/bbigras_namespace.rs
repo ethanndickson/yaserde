@@ -1,5 +1,5 @@
 // related to issue https://github.com/media-io/yaserde/issues/15
-use yaserde::*;
+use sepserde::*;
 
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
 #[yaserde(
@@ -74,8 +74,8 @@ struct Row {
 
 #[test]
 fn parsing_bbigras_namespace() {
+    use sepserde::de::from_str;
     use std::fs;
-    use yaserde::de::from_str;
 
     let filename = "tests/data/bbigras-namespace.xml";
 

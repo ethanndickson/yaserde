@@ -70,20 +70,19 @@
 //!
 //! ```ignore
 //!     // Display pretty printed XML
-//!    let yaserde_cfg = yaserde::ser::Config{
+//!    let yaserde_cfg = sepserde::ser::Config{
 //!        perform_indent: true,
 //!        .. Default::default()
 //!    };
 //!
-//!     println!("{}", yaserde::ser::to_string_with_config(&dev, &yaserde_cfg).ok().unwrap());
+//!     println!("{}", sepserde::ser::to_string_with_config(&dev, &yaserde_cfg).ok().unwrap());
 //! ```
 //!
 //! Avoid using either `{:?}` or `{:#?}` println! formatters since it'll garble the output of your
 //! XML.
 
-#[cfg(feature = "yaserde_derive")]
 #[doc(hidden)]
-pub use yaserde_derive::{
+pub use sepserde_derive::{
     DefaultYaSerde, HexBinaryYaSerde, PrimitiveYaSerde, YaDeserialize, YaSerialize,
 };
 
@@ -324,7 +323,7 @@ macro_rules! test_for_attribute_type {
 macro_rules! deserialize_and_validate {
     ($content: expr, $model: expr, $struct: tt) => {
         log::debug!("deserialize_and_validate @ {}:{}", file!(), line!());
-        let loaded: Result<$struct, String> = yaserde::de::from_str($content);
+        let loaded: Result<$struct, String> = sepserde::de::from_str($content);
         assert_eq!(loaded, Ok($model));
     };
 }
@@ -334,7 +333,7 @@ macro_rules! deserialize_and_validate {
 macro_rules! serialize_and_validate {
     ($model: expr, $content: expr) => {
         log::debug!("serialize_and_validate @ {}:{}", file!(), line!());
-        let data: Result<String, String> = yaserde::ser::to_string(&$model);
+        let data: Result<String, String> = sepserde::ser::to_string(&$model);
 
         let content = &format!(r#"<?xml version="1.0" encoding="utf-8"?>{}"#, $content);
         assert_eq!(
