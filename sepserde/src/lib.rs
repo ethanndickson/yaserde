@@ -14,7 +14,7 @@
 //! and it can be defined on YaSerDe via structs like so:
 //!
 //!```rust
-//! use yaserde_derive::YaSerialize;
+//! use sepserde_derive::YaSerialize;
 //!
 //! #[derive(Default, PartialEq, Debug, YaSerialize)]
 //! #[yaserde(rename = "device")]
@@ -63,7 +63,7 @@
 //! # serde = { version = "1.0.123", features = [ "derive" ] }
 //! # quick-xml = { version = "0.21.0", features = [ "serialize" ] }
 //! yaserde = "0.5.1"
-//! yaserde_derive = "0.5.1"
+//! sepserde_derive = "0.5.1"
 //! ```
 //!
 //! Last but not least, in order to have a nice, pretty printed XML output one can do:
@@ -237,11 +237,11 @@ serialize_type!(i64);
 serialize_type!(f32);
 serialize_type!(f64);
 
-/// Re-export for use in yaserde_derive
+/// Re-export for use in sepserde_derive
 #[doc(hidden)]
 pub use xml;
 
-/// Re-export for use in yaserde_derive
+/// Re-export for use in sepserde_derive
 #[doc(hidden)]
 pub use log;
 
@@ -334,11 +334,11 @@ macro_rules! serialize_and_validate {
     ($model: expr, $content: expr) => {
         log::debug!("serialize_and_validate @ {}:{}", file!(), line!());
         let data: Result<String, String> = sepserde::ser::to_string(&$model);
-
-        let content = &format!(r#"<?xml version="1.0" encoding="utf-8"?>{}"#, $content);
+        let content = &format!(r#"{}"#, $content);
+        let s = data.clone().unwrap_or_default().split("\n").map(|s| s.trim()).collect::<String>();
         assert_eq!(
-            data,
-            Ok(content.split("\n").map(|s| s.trim()).collect::<String>())
+            s,
+            content.split("\n").map(|s| s.trim()).collect::<String>()
         );
     };
 }

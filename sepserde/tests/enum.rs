@@ -1,4 +1,4 @@
-use sepserde::{deserialize_and_validate, serialize_and_validate};
+use sepserde::{deserialize_and_validate, serialize_and_validate, YaDeserialize, YaSerialize};
 
 #[test]
 fn basic_enum() {
