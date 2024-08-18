@@ -6,4 +6,4 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-yaserde = {version = "0.8.0", path = "../yaserde", features = ["yaserde_derive"] }
+sepserde = {version = "0.8.0", path = "../sepserde" }

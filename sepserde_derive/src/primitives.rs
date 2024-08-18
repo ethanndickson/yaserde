@@ -20,10 +20,10 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
             {
               #struct_name_literal
             }
-            fn serialize<W: ::std::io::Write>(
+            fn serialize(
                 &self,
-                writer: &mut ::sepserde::ser::Serializer<W>,
-            ) -> ::std::result::Result<(), ::std::string::String> {
+                writer: &mut ::sepserde::ser::Serializer,
+            ) -> Result<(), String> {
               ::sepserde::primitives::serialize_primitives(
                     self,
                     #struct_name_literal,
@@ -35,21 +35,21 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
                 &self,
                 attributes: ::std::vec::Vec<::xml::attribute::OwnedAttribute>,
                 namespace: ::xml::namespace::Namespace,
-            ) -> ::std::result::Result<
+            ) -> Result<
                 (
                     ::std::vec::Vec<::xml::attribute::OwnedAttribute>,
                     ::xml::namespace::Namespace,
                 ),
-                ::std::string::String,
+                String,
             > {
                 Ok((attributes, namespace))
             }
         }
 
         impl ::sepserde::YaDeserialize for #struct_name {
-            fn deserialize<R: ::std::io::Read>(
-                reader: &mut ::sepserde::de::Deserializer<R>,
-            ) -> ::std::result::Result<Self, ::std::string::String> {
+            fn deserialize<'a, R: Iterator<Item = &'a u8>>(
+                reader: &mut ::sepserde::de::Deserializer<'a,R>,
+            ) -> Result<Self, String> {
                 ::sepserde::primitives::deserialize_primitives(
                     reader,
                     |s| #struct_name::from_str(s).map_err(|e| e.to_string()),
@@ -78,9 +78,9 @@ pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
       }
 
       impl ::std::str::FromStr for #ident {
-        type Err = ::std::string::String;
+        type Err = String;
 
-        fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
+        fn from_str(s: &::std::primitive::str) -> Result<Self, Self::Err> {
           Self::from_bits(
             s.parse()
                 .map_err(|_| String::from("Failed to parse Bitflag integer"))?,
@@ -104,9 +104,9 @@ pub fn primitive_serde(input: TokenStream) -> TokenStream {
       }
 
       impl ::std::str::FromStr for #ident {
-        type Err = ::std::string::String;
+        type Err = String;
 
-        fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
+        fn from_str(s: &::std::primitive::str) -> Result<Self, Self::Err> {
           Ok(#ident(#fromstr))
         }
       }

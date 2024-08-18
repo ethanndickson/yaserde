@@ -28,10 +28,10 @@ pub fn implement_serializer(
           #name_str
         }
         #[allow(unused_variables)]
-        fn serialize<W: ::std::io::Write>(
+        fn serialize(
           &self,
-          writer: &mut ::sepserde::ser::Serializer<W>,
-        ) -> ::std::result::Result<(), ::std::string::String> where Self: Sized {
+          writer: &mut ::sepserde::ser::Serializer,
+        ) -> Result<(), String> where Self: Sized {
           let skip = writer.skip_start_end();
 
           if !#flatten && !skip {
@@ -86,16 +86,16 @@ pub fn implement_serializer(
             writer.write(struct_end_event).map_err(|e| e.to_string())?;
           }
 
-          ::std::result::Result::Ok(())
+          Result::Ok(())
         }
 
         fn serialize_attributes(
           &self,
           mut source_attributes: ::std::vec::Vec<::sepserde::xml::attribute::OwnedAttribute>,
           mut source_namespace: ::sepserde::xml::namespace::Namespace,
-        ) -> ::std::result::Result<
+        ) -> Result<
           (::std::vec::Vec<::sepserde::xml::attribute::OwnedAttribute>, ::sepserde::xml::namespace::Namespace),
-          ::std::string::String
+          String
         > where Self: Sized {
           let mut child_attributes = ::std::vec::Vec::<::sepserde::xml::attribute::OwnedAttribute>::new();
           let mut child_attributes_namespace = ::sepserde::xml::namespace::Namespace::empty();
@@ -116,7 +116,7 @@ pub fn implement_serializer(
             source_attributes.extend(a);
             source_attributes.extend(child_attributes);
 
-            ::std::result::Result::Ok((source_attributes, source_namespace))
+            Result::Ok((source_attributes, source_namespace))
           } else {
             unreachable!();
           }

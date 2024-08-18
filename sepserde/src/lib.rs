@@ -80,22 +80,28 @@
 //!
 //! Avoid using either `{:?}` or `{:#?}` println! formatters since it'll garble the output of your
 //! XML.
+#![no_std]
 
+use alloc::format;
 #[doc(hidden)]
 pub use sepserde_derive::{
     DefaultYaSerde, HexBinaryYaSerde, PrimitiveYaSerde, YaDeserialize, YaSerialize,
 };
 
-use std::io::{Read, Write};
-use xml::writer::XmlEvent;
+extern crate alloc;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use xml_no_std::writer::XmlEvent;
 
 pub mod de;
 pub mod primitives;
 pub mod ser;
 
 /// A **data structure** that can be deserialized from any data format supported by YaSerDe.
-pub trait YaDeserialize {
-    fn deserialize<R: Read>(reader: &mut de::Deserializer<R>) -> Result<Self, String>
+pub trait YaDeserialize: Sized {
+    fn deserialize<'a, R: Iterator<Item = &'a u8>>(
+        reader: &mut de::Deserializer<'a, R>,
+    ) -> Result<Self, String>
     where
         Self: Sized;
 }
@@ -106,9 +112,7 @@ pub trait YaSerialize {
     where
         Self: Sized;
 
-    fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>
-    where
-        Self: Sized;
+    fn serialize(&self, writer: &mut ser::Serializer) -> Result<(), String>;
 
     fn serialize_attributes(
         &self,
@@ -189,9 +193,7 @@ macro_rules! serialize_type {
                 "$type"
             }
 
-            fn serialize<W: Write>(&self, writer: &mut ser::Serializer<W>) -> Result<(), String>
-            where
-                Self: Sized,
+            fn serialize(&self, writer: &mut ser::Serializer) -> Result<(), String>
             {
                 let content = format!("{}", self);
                 let event = XmlEvent::characters(&content);
@@ -239,7 +241,7 @@ serialize_type!(f64);
 
 /// Re-export for use in sepserde_derive
 #[doc(hidden)]
-pub use xml;
+pub use xml_no_std as xml;
 
 /// Re-export for use in sepserde_derive
 #[doc(hidden)]
@@ -335,10 +337,12 @@ macro_rules! serialize_and_validate {
         log::debug!("serialize_and_validate @ {}:{}", file!(), line!());
         let data: Result<String, String> = sepserde::ser::to_string(&$model);
         let content = &format!(r#"{}"#, $content);
-        let s = data.clone().unwrap_or_default().split("\n").map(|s| s.trim()).collect::<String>();
-        assert_eq!(
-            s,
-            content.split("\n").map(|s| s.trim()).collect::<String>()
-        );
+        let s = data
+            .clone()
+            .unwrap_or_default()
+            .split("\n")
+            .map(|s| s.trim())
+            .collect::<String>();
+        assert_eq!(s, content.split("\n").map(|s| s.trim()).collect::<String>());
     };
 }

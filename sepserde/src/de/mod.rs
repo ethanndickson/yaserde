@@ -1,27 +1,30 @@
 //! Generic data structure deserialization framework.
 //!
-
 use crate::YaDeserialize;
-use std::io::Read;
+use alloc::format;
+use alloc::string::{String, ToString};
 use xml::name::OwnedName;
 use xml::reader::{EventReader, ParserConfig, XmlEvent};
+pub use xml_no_std as xml;
 
 pub fn from_str<T: YaDeserialize>(s: &str) -> Result<T, String> {
-    from_reader(s.as_bytes())
+    from_reader(s.as_bytes().iter())
 }
 
-pub fn from_reader<R: Read, T: YaDeserialize>(reader: R) -> Result<T, String> {
+pub fn from_reader<'a, R: Iterator<Item = &'a u8>, T: YaDeserialize>(
+    reader: R,
+) -> Result<T, String> {
     <T as YaDeserialize>::deserialize(&mut Deserializer::new_from_reader(reader))
 }
 
-pub struct Deserializer<R: Read> {
+pub struct Deserializer<'a, R: Iterator<Item = &'a u8>> {
     depth: usize,
-    reader: EventReader<R>,
+    reader: EventReader<'a, R>,
     peeked: Option<XmlEvent>,
 }
 
-impl<R: Read> Deserializer<R> {
-    pub fn new(reader: EventReader<R>) -> Self {
+impl<'a, R: Iterator<Item = &'a u8>> Deserializer<'a, R> {
+    pub fn new(reader: EventReader<'a, R>) -> Self {
         Deserializer {
             depth: 0,
             reader,

@@ -65,7 +65,7 @@ pub fn serialize(
             | Field::F32
             | Field::F64 => field.ser_wrap_default_attribute(
               Some(
-                quote!(self.#label.map_or_else(|| ::std::string::String::new(), |v| v.to_string())),
+                quote!(self.#label.map_or_else(|| String::new(), |v| v.to_string())),
               ),
               quote!({
                 if let ::std::option::Option::Some(ref value) = self.#label {
@@ -95,7 +95,7 @@ pub fn serialize(
               self.#label
                 .as_ref()
                 .map_or_else(
-                  || ::std::result::Result::Ok(::std::string::String::new()),
+                  || Result::Ok(String::new()),
                   |v| ::sepserde::ser::to_string_content(v),
                 )?
               }),

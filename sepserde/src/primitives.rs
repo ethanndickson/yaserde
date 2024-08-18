@@ -1,11 +1,12 @@
-use std::{io::Read, io::Write};
+use alloc::string::{String, ToString};
 
 use crate::{de, ser};
+pub use xml_no_std as xml;
 
-pub fn serialize_primitives<S, W: Write>(
+pub fn serialize_primitives<S>(
     self_bypass: &S,
     default_name: &str,
-    writer: &mut ser::Serializer<W>,
+    writer: &mut ser::Serializer,
     ser_fn: impl FnOnce(&S) -> String,
 ) -> Result<(), String> {
     let name = writer
@@ -33,8 +34,8 @@ pub fn serialize_primitives<S, W: Write>(
     Ok(())
 }
 
-pub fn deserialize_primitives<S, R: Read>(
-    reader: &mut de::Deserializer<R>,
+pub fn deserialize_primitives<'a, S, R: Iterator<Item = &'a u8>>(
+    reader: &mut de::Deserializer<'a, R>,
     de_fn: impl FnOnce(&str) -> Result<S, String>,
 ) -> Result<S, String> {
     if let Ok(xml::reader::XmlEvent::StartElement { .. }) = reader.peek() {

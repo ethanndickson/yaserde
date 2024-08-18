@@ -2,33 +2,26 @@
 //!
 
 use crate::YaSerialize;
-use std::io::{Cursor, Write};
-use std::str;
-use xml::writer::XmlEvent;
-use xml::{EmitterConfig, EventWriter};
+
+use alloc::string::{String, ToString};
+pub use xml_no_std as xml;
+use xml_no_std::writer::XmlEvent;
+use xml_no_std::{EmitterConfig, EventWriter};
 
 /// Serialize XML into a plain String with IEEE 2030.5 Formatting
 pub fn to_string<T: YaSerialize>(model: &T) -> Result<String, String> {
-    let buf = Cursor::new(Vec::new());
-    let cursor = serialize_with_writer(model, buf, &Config::default())?;
-    let data = str::from_utf8(cursor.get_ref()).expect("Found invalid UTF-8");
-    Ok(data.into())
+    let data = serialize_with_writer(model, &Config::default())?;
+    Ok(data)
 }
 
 /// Serialize XML into a plain String with control on formatting (via EmitterConfig parameters)
 pub fn to_string_with_config<T: YaSerialize>(model: &T, config: &Config) -> Result<String, String> {
-    let buf = Cursor::new(Vec::new());
-    let cursor = serialize_with_writer(model, buf, config)?;
-    let data = str::from_utf8(cursor.get_ref()).expect("Found invalid UTF-8");
-    Ok(data.into())
+    let data = serialize_with_writer(model, config)?;
+    Ok(data)
 }
 
-pub fn serialize_with_writer<W: Write, T: YaSerialize>(
-    model: &T,
-    writer: W,
-    config: &Config,
-) -> Result<W, String> {
-    let mut serializer = Serializer::new_from_writer(writer, config);
+pub fn serialize_with_writer<T: YaSerialize>(model: &T, config: &Config) -> Result<String, String> {
+    let mut serializer = Serializer::new_from_writer(config);
     match YaSerialize::serialize(model, &mut serializer) {
         Ok(()) => Ok(serializer.into_inner()),
         Err(msg) => Err(msg),
@@ -36,17 +29,12 @@ pub fn serialize_with_writer<W: Write, T: YaSerialize>(
 }
 
 pub fn to_string_content<T: YaSerialize>(model: &T) -> Result<String, String> {
-    let buf = Cursor::new(Vec::new());
-    let cursor = serialize_with_writer_content(model, buf)?;
-    let data = str::from_utf8(cursor.get_ref()).expect("Found invalid UTF-8");
-    Ok(data.into())
+    let data = serialize_with_writer_content(model)?;
+    Ok(data)
 }
 
-pub fn serialize_with_writer_content<W: Write, T: YaSerialize>(
-    model: &T,
-    writer: W,
-) -> Result<W, String> {
-    let mut serializer = Serializer::new_for_inner(writer);
+pub fn serialize_with_writer_content<T: YaSerialize>(model: &T) -> Result<String, String> {
+    let mut serializer = Serializer::new_for_inner();
     serializer.set_skip_start_end(true);
     match YaSerialize::serialize(model, &mut serializer) {
         Ok(()) => Ok(serializer.into_inner()),
@@ -54,15 +42,15 @@ pub fn serialize_with_writer_content<W: Write, T: YaSerialize>(
     }
 }
 
-pub struct Serializer<W: Write> {
-    writer: EventWriter<W>,
+pub struct Serializer {
+    writer: EventWriter,
     skip_start_end: bool,
     generic: bool,
     start_event_name: Option<String>,
 }
 
-impl<W: Write> Serializer<W> {
-    pub fn new(writer: EventWriter<W>) -> Self {
+impl Serializer {
+    pub fn new(writer: EventWriter) -> Self {
         Serializer {
             writer,
             generic: false,
@@ -71,7 +59,7 @@ impl<W: Write> Serializer<W> {
         }
     }
 
-    pub fn new_from_writer(writer: W, config: &Config) -> Self {
+    pub fn new_from_writer(config: &Config) -> Self {
         let mut emitter_config = EmitterConfig::new()
             .cdata_to_characters(true)
             .perform_indent(config.perform_indent)
@@ -81,16 +69,16 @@ impl<W: Write> Serializer<W> {
             emitter_config = emitter_config.indent_string(indent_string_value.clone());
         }
 
-        Self::new(EventWriter::new_with_config(writer, emitter_config))
+        Self::new(EventWriter::new_with_config(emitter_config))
     }
 
-    pub fn new_for_inner(writer: W) -> Self {
+    pub fn new_for_inner() -> Self {
         let config = EmitterConfig::new().write_document_declaration(false);
 
-        Self::new(EventWriter::new_with_config(writer, config))
+        Self::new(EventWriter::new_with_config(config))
     }
 
-    pub fn into_inner(self) -> W {
+    pub fn into_inner(self) -> String {
         self.writer.into_inner()
     }
 

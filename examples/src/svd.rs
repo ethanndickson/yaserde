@@ -184,6 +184,7 @@ fn parsing_svd() {
     // Display pretty printed XML
     let yaserde_cfg = sepserde::ser::Config {
         perform_indent: true,
+        write_document_declaration:true,
         ..Default::default()
     };
 

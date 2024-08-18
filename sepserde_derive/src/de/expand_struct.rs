@@ -94,7 +94,7 @@ pub fn parse(
             fn visit_str(
               self,
               v: &str,
-            ) -> ::std::result::Result<Self::Value, ::std::string::String> {
+            ) -> Result<Self::Value, String> {
               let content = "<".to_string() + #struct_id + ">" + v + "</" + #struct_id + ">";
               ::sepserde::de::from_str(&content)
             }
@@ -126,7 +126,7 @@ pub fn parse(
             fn #visitor(
               self,
               v: &str,
-            ) -> ::std::result::Result<Self::Value, ::std::string::String> {
+            ) -> Result<Self::Value, String> {
               #field_type::from_str(#map_if_bool).map_err(|e| e.to_string())
             }
           }
@@ -353,14 +353,14 @@ pub fn parse(
     quote! {
       impl #impl_generics ::sepserde::YaDeserialize for #name #ty_generics #where_clause {
         #[allow(unused_variables)]
-        fn deserialize<R: ::std::io::Read>(
-          reader: &mut ::sepserde::de::Deserializer<R>,
-        ) -> ::std::result::Result<Self, ::std::string::String> where Self: Sized {
+        fn deserialize<'a,R: Iterator<Item = &'a u8>>(
+          reader: &mut ::sepserde::de::Deserializer<'a,R>,
+        ) -> Result<Self, String> where Self: Sized {
           let (named_element, struct_namespace) =
             if let ::sepserde::xml::reader::XmlEvent::StartElement { name, .. } = reader.peek()?.to_owned() {
               (name.local_name.to_owned(), name.namespace.clone())
             } else {
-              (::std::string::String::from(#root), ::std::option::Option::None)
+              (String::from(#root), ::std::option::Option::None)
             };
           let start_depth = reader.depth();
           ::sepserde::log::debug!("Struct {} @ {}: start to parse {:?}", stringify!(#name), start_depth,
@@ -429,7 +429,7 @@ pub fn parse(
                 #write_unused
               }
               event => {
-                return ::std::result::Result::Err(::std::format!("unknown event {:?}", event));
+                return Result::Err(::std::format!("unknown event {:?}", event));
               }
             }
           }
@@ -437,7 +437,7 @@ pub fn parse(
           #visit_unused
 
           ::sepserde::log::debug!("Struct {} @ {}: success", stringify!(#name), start_depth);
-          ::std::result::Result::Ok(#name{#struct_builder})
+          Result::Ok(#name{#struct_builder})
         }
       }
     }
@@ -467,16 +467,16 @@ fn build_call_visitor(
         #namespaces_matching
 
         let result = reader.read_inner_value::<#field_type, _>(|reader| {
-          if let ::std::result::Result::Ok(::sepserde::xml::reader::XmlEvent::Characters(s)) = reader.peek() {
+          if let Result::Ok(::sepserde::xml::reader::XmlEvent::Characters(s)) = reader.peek() {
             let val = visitor.#visitor(&s);
             let _event = reader.next_event()?;
             val
           } else {
-            ::std::result::Result::Err(::std::format!("unable to parse content for {}", #label_name))
+            Result::Err(::std::format!("unable to parse content for {}", #label_name))
           }
         });
 
-        if let ::std::result::Result::Ok(value) = result {
+        if let Result::Ok(value) = result {
           #value_label#action
         }
       }
@@ -514,8 +514,7 @@ fn build_code_for_unused_xml_events(
 ) {
     (
         Some(quote! {
-          let mut buf = ::std::vec![];
-          let mut writer = ::std::option::Option::Some(::sepserde::xml::writer::EventWriter::new(&mut buf));
+          let mut writer = ::std::option::Option::Some(::sepserde::xml::writer::EventWriter::new());
         }),
         Some(quote! {
           if let ::std::option::Option::Some(ref mut w) = writer {
@@ -526,7 +525,7 @@ fn build_code_for_unused_xml_events(
         }),
         Some(quote! {
           if writer.is_some() {
-            let unused_xml_elements = ::std::string::String::from_utf8(buf).unwrap();
+            let unused_xml_elements =  writer.unwrap().into_inner();
             #call_flatten_visitors
           }
         }),

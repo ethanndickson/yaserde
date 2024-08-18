@@ -27,14 +27,14 @@ pub fn parse(
     quote! {
       impl ::sepserde::YaDeserialize for #name {
         #[allow(unused_variables)]
-        fn deserialize<R: ::std::io::Read>(
-          reader: &mut ::sepserde::de::Deserializer<R>,
-        ) -> ::std::result::Result<Self, ::std::string::String> where Self: Sized {
+        fn deserialize<'a,R: Iterator<Item = &'a u8>>(
+          reader: &mut ::sepserde::de::Deserializer<'a,R>,
+        ) -> Result<Self, String> where Self: Sized {
           let (named_element, enum_namespace) =
             if let ::sepserde::xml::reader::XmlEvent::StartElement{ name, .. } = reader.peek()?.to_owned() {
               (name.local_name.to_owned(), name.namespace.clone())
             } else {
-              (::std::string::String::from(#root), ::std::option::Option::None)
+              (String::from(#root), ::std::option::Option::None)
             };
 
           let start_depth = reader.depth();
@@ -77,21 +77,21 @@ pub fn parse(
                   break;
                 }
 
-                return ::std::result::Result::Err(
+                return Result::Err(
                   ::std::format!("End of document, missing some content ?"),
                 );
               }
               event => {
-                return ::std::result::Result::Err(::std::format!("unknown event {:?}", event))
+                return Result::Err(::std::format!("unknown event {:?}", event))
               }
             }
           }
 
           ::sepserde::log::debug!("Enum {} @ {}: success", stringify!(#name), start_depth);
           match enum_value {
-            ::std::option::Option::Some(value) => ::std::result::Result::Ok(value),
+            ::std::option::Option::Some(value) => Result::Ok(value),
             ::std::option::Option::None => {
-              ::std::result::Result::Ok(<#name as ::std::default::Default>::default())
+              Result::Ok(<#name as ::std::default::Default>::default())
             },
           }
         }
@@ -160,7 +160,7 @@ fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
             fn #visitor(
               self,
               v: &str,
-            ) -> ::std::result::Result<Self::Value, ::std::string::String> {
+            ) -> Result<Self::Value, String> {
               #fn_body
             }
           }
@@ -174,7 +174,7 @@ fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
         make_visitor(
           &visitor,
           &field_type,
-          &quote! { ::std::result::Result::Ok(#field_type::from_str(v).unwrap()) },
+          &quote! { Result::Ok(#field_type::from_str(v).unwrap()) },
         )
       };
 
@@ -191,7 +191,7 @@ fn build_unnamed_field_visitors(fields: &syn::FieldsUnnamed) -> TokenStream {
             &quote! { #struct_name },
             &quote! {
               let content = "<".to_string() + #struct_id + ">" + v + "</" + #struct_id + ">";
-              let value: ::std::result::Result<#struct_name, ::std::string::String> =
+              let value: Result<#struct_name, String> =
                 ::sepserde::de::from_str(&content);
               value
             },
@@ -233,18 +233,18 @@ fn build_unnamed_visitor_calls(
               return visitor.#visitor("");
             }
 
-            if let ::std::result::Result::Ok(::sepserde::xml::reader::XmlEvent::Characters(s))
+            if let Result::Ok(::sepserde::xml::reader::XmlEvent::Characters(s))
               = reader.next_event()
             {
               visitor.#visitor(&s)
             } else {
-              ::std::result::Result::Err(
+              Result::Err(
                 ::std::format!("unable to parse content for {}", #label_name),
               )
             }
           });
 
-          if let ::std::result::Result::Ok(value) = result {
+          if let Result::Ok(value) = result {
             #action
           }
         })
@@ -275,8 +275,8 @@ fn build_unnamed_visitor_calls(
           Some(ref mut v) => match v {
             #variant_name(ref mut v) => v.push(value),
             _ => {
-              return ::std::result::Result::Err(
-                ::std::string::String::from("Got sequence of different types"),
+              return Result::Err(
+                String::from("Got sequence of different types"),
               );
             }
           }
