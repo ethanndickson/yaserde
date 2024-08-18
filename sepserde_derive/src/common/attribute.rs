@@ -139,10 +139,10 @@ impl YaSerdeAttribute {
 
     pub fn get_namespace_matching(
         &self,
-        prefix: &Option<String>,
+        _prefix: &Option<String>,
         element_namespace: TokenStream,
         element_name: TokenStream,
-        take_root_prefix: bool,
+        _take_root_prefix: bool,
     ) -> TokenStream {
         let namespaces_matches: TokenStream = self
             .namespaces
