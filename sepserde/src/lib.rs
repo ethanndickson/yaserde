@@ -91,6 +91,9 @@ pub use sepserde_derive::{
 extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+/// Re-export for use in sepserde_derive
+#[doc(hidden)]
+pub use xml_no_std as xml;
 use xml_no_std::writer::XmlEvent;
 
 pub mod de;
@@ -193,8 +196,7 @@ macro_rules! serialize_type {
                 "$type"
             }
 
-            fn serialize(&self, writer: &mut ser::Serializer) -> Result<(), String>
-            {
+            fn serialize(&self, writer: &mut ser::Serializer) -> Result<(), String> {
                 let content = format!("{}", self);
                 let event = XmlEvent::characters(&content);
                 let _ret = writer.write(event);
@@ -238,10 +240,6 @@ serialize_type!(i64);
 
 serialize_type!(f32);
 serialize_type!(f64);
-
-/// Re-export for use in sepserde_derive
-#[doc(hidden)]
-pub use xml_no_std as xml;
 
 /// Re-export for use in sepserde_derive
 #[doc(hidden)]

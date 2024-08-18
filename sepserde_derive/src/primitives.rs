@@ -33,12 +33,12 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
 
             fn serialize_attributes(
                 &self,
-                attributes: ::std::vec::Vec<::xml::attribute::OwnedAttribute>,
-                namespace: ::xml::namespace::Namespace,
+                attributes: ::std::vec::Vec<::xml_no_std::attribute::OwnedAttribute>,
+                namespace: ::xml_no_std::namespace::Namespace,
             ) -> Result<
                 (
-                    ::std::vec::Vec<::xml::attribute::OwnedAttribute>,
-                    ::xml::namespace::Namespace,
+                    ::std::vec::Vec<::xml_no_std::attribute::OwnedAttribute>,
+                    ::xml_no_std::namespace::Namespace,
                 ),
                 String,
             > {
