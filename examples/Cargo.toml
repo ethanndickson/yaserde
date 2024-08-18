@@ -6,4 +6,6 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-yaserde = {version = "0.8.0", path = "../yaserde", features = ["yaserde_derive"] }
+bitflags = "2.6.0"
+sepserde = {version = "0.8.0", path = "../sepserde" }
+xml-no-std = "0.8.3"

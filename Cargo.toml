@@ -1,5 +1,2 @@
 [workspace]
-members = [
-  "sepserde",
-  "sepserde_derive",
-]
+members = ["sepserde", "sepserde_derive","examples"]

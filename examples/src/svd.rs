@@ -1,4 +1,5 @@
 use sepserde::YaSerialize;
+use sepserde::HexBinaryYaSerde;
 
 #[derive(Default, PartialEq, Debug, YaSerialize)]
 struct CpuDef {
@@ -115,6 +116,16 @@ struct Device {
     #[yaserde(child)]
     devattributes: DevAttrs,
 }
+use bitflags::bitflags;
+
+bitflags! {
+    #[derive(Default, PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, HexBinaryYaSerde)]
+    pub struct ResponseRequired: u8 { // HexBinary8
+        const MessageReceived = 1;
+        const SpecificResponse = 2;
+        const ResponseRequired = 4;
+    }
+}
 
 #[test]
 fn parsing_svd() {
@@ -184,6 +195,7 @@ fn parsing_svd() {
     // Display pretty printed XML
     let yaserde_cfg = sepserde::ser::Config {
         perform_indent: true,
+        write_document_declaration: true,
         ..Default::default()
     };
 

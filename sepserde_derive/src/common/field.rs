@@ -258,7 +258,7 @@ impl From<&syn::PathSegment> for Field {
 impl From<Field> for proc_macro2::TokenStream {
     fn from(field: Field) -> proc_macro2::TokenStream {
         match field {
-            Field::String => quote! { ::std::string::String },
+            Field::String => quote! { String },
             Field::Bool => quote! { bool },
             Field::I8 => quote! { i8 },
             Field::U8 => quote! { u8 },

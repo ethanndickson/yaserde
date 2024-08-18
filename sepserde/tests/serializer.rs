@@ -1,6 +1,6 @@
 use sepserde::{serialize_and_validate, YaSerialize};
 
-use std::io::Write;
+pub use xml_no_std as xml;
 
 #[test]
 fn ser_basic() {
@@ -382,9 +382,9 @@ fn ser_custom() {
     }
 
     impl YaSerialize for Day {
-        fn serialize<W: Write>(
+        fn serialize(
             &self,
-            writer: &mut sepserde::ser::Serializer<W>,
+            writer: &mut sepserde::ser::Serializer,
         ) -> Result<(), String>
         where
             Self: Sized,

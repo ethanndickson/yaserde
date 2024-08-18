@@ -1,7 +1,7 @@
 use log::debug;
 use sepserde::de::from_str;
 use sepserde::{deserialize_and_validate, serialize_and_validate, YaDeserialize, YaSerialize};
-use std::io::Read;
+pub use xml_no_std as xml;
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
@@ -248,8 +248,8 @@ fn de_attributes_custom_deserializer() {
         }
 
         impl YaDeserialize for Attributes {
-            fn deserialize<R: Read>(
-                reader: &mut sepserde::de::Deserializer<R>,
+            fn deserialize<'a, R: Iterator<Item = &'a u8>>(
+                reader: &mut sepserde::de::Deserializer<'a, R>,
             ) -> Result<Self, String>
             where
                 Self: Sized,
@@ -588,7 +588,9 @@ fn de_custom() {
     }
 
     impl YaDeserialize for Day {
-        fn deserialize<R: Read>(reader: &mut sepserde::de::Deserializer<R>) -> Result<Self, String>
+        fn deserialize<'a, R: Iterator<Item = &'a u8>>(
+            reader: &mut sepserde::de::Deserializer<'a, R>,
+        ) -> Result<Self, String>
         where
             Self: Sized,
         {
