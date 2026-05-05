@@ -64,16 +64,11 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
 pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
     let first = input.clone();
     let DeriveInput { ident, .. } = parse_macro_input!(first);
-    // Calculate number digits to determine whether leading zero should be added
     quote! {
       impl std::fmt::Display for #ident {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-          let digits = (self.bits() as f64).log(16.0).ceil() as usize;
-          if digits % 2 == 0 {
-            write!(f, "{:X}", self.0)
-          } else {
-            write!(f,"0{:X}", self.0)
-          }
+          let width = ::std::mem::size_of::<<#ident as ::bitflags::Flags>::Bits>() * 2;
+          write!(f, "{:0width$X}", self.bits(), width = width)
         }
       }
 
@@ -81,9 +76,14 @@ pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
         type Err = ::std::string::String;
 
         fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
+          let s = s
+            .strip_prefix("0x")
+            .or_else(|| s.strip_prefix("0X"))
+            .unwrap_or(s);
+
           Self::from_bits(
-            s.parse()
-                .map_err(|_| String::from("Failed to parse Bitflag integer"))?,
+            <<#ident as ::bitflags::Flags>::Bits>::from_str_radix(s, 16)
+                .map_err(|_| String::from("Failed to parse HexBinary bitflag"))?,
         )
         .ok_or(String::from("Unknown bits were set in Bitflag"))
         }
