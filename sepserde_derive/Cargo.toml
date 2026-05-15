@@ -1,6 +1,6 @@
 [package]
 name = "sepserde_derive"
-version = "0.8.1"
+version = "0.8.2"
 authors = ["Marc-Antoine Arnaud <arnaud.marcantoine@gmail.com>","Ethan Dickson <ethanndickson@gmail.com>"]
 description = "XML Serialization and deserialization proc macros for IEEE 2030.5"
 keywords = ["Serialization", "Deserialization"]
