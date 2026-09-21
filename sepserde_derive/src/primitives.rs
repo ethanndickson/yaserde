@@ -64,13 +64,16 @@ pub fn primitive_yaserde(input: TokenStream) -> TokenStream {
 pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
     let first = input.clone();
     let DeriveInput { ident, .. } = parse_macro_input!(first);
-    // Width is fixed by the underlying primitive (HexBinary8 -> 2 chars, HexBinary16 -> 4, etc.)
-    // so that the wire format matches the XSD hexBinary type the bitflag stands in for.
+    // XSD hexBinary only requires whole octets in uppercase canonical form; it does not
+    // fix the width. Render the fewest whole octets, which is how the IEEE 2030.5 spec
+    // writes its own examples: `0x3F` -> "3F", `0x100` -> "0100", `0` -> "00".
     quote! {
       impl std::fmt::Display for #ident {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-          let width = ::std::mem::size_of_val(&self.bits()) * 2;
-          write!(f, "{:0width$X}", self.bits(), width = width)
+          let bits = self.bits();
+          let significant = ::std::mem::size_of_val(&bits) * 8 - bits.leading_zeros() as usize;
+          let width = ::std::cmp::max(1, significant.div_ceil(8)) * 2;
+          write!(f, "{:0width$X}", bits, width = width)
         }
       }
 
@@ -78,6 +81,10 @@ pub fn hexbinary_serde(input: TokenStream) -> TokenStream {
         type Err = ::std::string::String;
 
         fn from_str(s: &::std::primitive::str) -> ::std::result::Result<Self, Self::Err> {
+          // `from_str_radix` accepts a leading `+`; hexBinary does not.
+          if !s.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err(String::from("Failed to parse Bitflag integer"));
+          }
           let bits = ::std::primitive::u64::from_str_radix(s, 16)
               .map_err(|_| String::from("Failed to parse Bitflag integer"))?;
           let narrowed = ::std::convert::TryInto::try_into(bits)
